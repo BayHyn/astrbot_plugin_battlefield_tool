@@ -1,7 +1,9 @@
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from astrbot.api import logger
+from data.plugins.astrbot_plugin_battlefield_tool.utils.cached_image_util import get_cached_image
 
+import aiohttp
 import time
 
 PARENT_FOLDER = Path(__file__).parent.parent.resolve()
@@ -15,15 +17,22 @@ BFV_BANNER = "https://s1.ax1x.com/2022/12/14/z54oIs.jpg"
 BANNERS = {"bf3": BF3_BANNER, "bf4": BF4_BANNER, "bf1": BF1_BANNER, "bfv": BFV_BANNER}
 
 
-BF3_LOGO = "https://s21.ax1x.com/2025/07/19/pV3I9ET.png"
-BF4_LOGO = "https://s21.ax1x.com/2025/07/19/pV3IRaT.png"
-BF1_LOGO = "https://s21.ax1x.com/2025/07/19/pV35O3j.png"
-BFV_LOGO = "https://s21.ax1x.com/2025/07/19/pV35LCQ.png"
+async def get_bf3_logo(session: aiohttp.ClientSession) -> bytes:
+    return await get_cached_image(session, "https://s21.ax1x.com/2025/07/19/pV3I9ET.png")
+
+async def get_bf4_logo(session: aiohttp.ClientSession) -> bytes:
+    return await get_cached_image(session, "https://s21.ax1x.com/2025/07/19/pV3IRaT.png")
+
+async def get_bf1_logo(session: aiohttp.ClientSession) -> bytes:
+    return await get_cached_image(session, "https://s21.ax1x.com/2025/07/19/pV35O3j.png")
+
+async def get_bfv_logo(session: aiohttp.ClientSession) -> bytes:
+    return await get_cached_image(session, "https://s21.ax1x.com/2025/07/19/pV35LCQ.png")
 
 #修复部分图标不展示的问题
 SU_50 = "https://s21.ax1x.com/2025/07/23/pVGGFeK.png"
 
-LOGOS = {"bf3": BF3_LOGO, "bf4": BF4_LOGO, "bf1": BF1_LOGO, "bfv": BFV_LOGO}
+LOGOS = {"bf3": get_bf3_logo, "bf4": get_bf4_logo, "bf1": get_bf1_logo, "bfv": get_bfv_logo}
 
 # 默认头像
 DEFAULT_AVATAR = "https://s21.ax1x.com/2025/07/16/pV1Ox6e.jpg"
@@ -175,6 +184,7 @@ def bf_servers_html_builder(servers_data, game):
     """
     banner = BANNERS[game]
     logo = LOGOS[game]
+    logger.info(logo)
     update_time = time.strftime(
         "%Y-%m-%d %H:%M:%S", time.localtime(servers_data["__update_time"])
     )
