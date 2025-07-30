@@ -5,8 +5,15 @@ CREATE TABLE IF NOT EXISTS battleField_user_binds
     ea_id  TEXT NOT NULL
 );
 
-create TABLE IF NOT EXISTS battleField_session_tags
+CREATE TABLE IF NOT EXISTS battleField_session_tags
 (
     session_channel_id VARCHAR(32) PRIMARY KEY,
     default_game_tag TEXT NOT NULL
+)
+
+CREATE TABLE IF NOT EXISTS battleField_image_cache (
+    key TEXT PRIMARY KEY,
+    data TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP
 )

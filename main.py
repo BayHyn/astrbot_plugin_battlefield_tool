@@ -18,6 +18,8 @@ from data.plugins.astrbot_plugin_battlefield_tool.utils.template import (
     bf_servers_html_builder,
 )
 
+from data.plugins.astrbot_plugin_battlefield_tool.utils.cached_image_util import (init_image_cache,image_cache)
+
 import re
 import time
 import aiohttp
@@ -56,11 +58,15 @@ class BattlefieldTool(Star):
         self.db = BattleFieldDataBase(self.bf_data_path)  # 初始化数据库
         self.db_service = BattleFieldDBService(self.db)  # 初始化数据库服务
         self._session = None
+        self.image_cache = None
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
         self._session = aiohttp.ClientSession()
-        await self.db.initialize()  # 添加数据库初始化调用
+        await self.db.initialize()# 添加数据库初始化调用
+
+        await init_image_cache()# 初始化图片缓存
+        self.image_cache = image_cache# 将缓存实例挂载到类中方便调用
 
     @filter.command("stat")
     async def bf_stat(self, event: AstrMessageEvent):
@@ -390,7 +396,7 @@ class BattlefieldTool(Star):
         Returns:
             返回生成的图片
         """
-        html = bf_main_html_builder(data, game)
+        html = await bf_main_html_builder(data, game)
         url = await self.html_render(
             html,
             {},
@@ -410,7 +416,7 @@ class BattlefieldTool(Star):
         Returns:
             返回生成的图片
         """
-        html = bf_weapons_html_builder(data, game)
+        html = await bf_weapons_html_builder(data, game)
         url = await self.html_render(
             html,
             {},
@@ -430,7 +436,7 @@ class BattlefieldTool(Star):
         Returns:
             返回生成的图片
         """
-        html = bf_vehicles_html_builder(data, game)
+        html = await bf_vehicles_html_builder(data, game)
         url = await self.html_render(
             html,
             {},
@@ -456,7 +462,7 @@ class BattlefieldTool(Star):
             height = 450
         elif data["servers"] is not None and len(data["servers"]) == 2:
             height = 620
-        html = bf_servers_html_builder(data, game)
+        html = await bf_servers_html_builder(data, game)
         url = await self.html_render(
             html,
             {},

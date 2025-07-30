@@ -2,7 +2,11 @@
 <div class="flex items-center grid grid-cols-6 gap-2 rounded-lg"
     style="padding: 10px; background-color: rgba(255,255,255,0.05);">
     <div class="col-span-2 row-span-2 flex flex-col justify-center items-center">
+        {% if w.cached_image is not none %}
+        <img src="{{ v.cached_image }}" class="object-scale-down" style="height:50px;width:150px;" />
+        {% else %}
         <img src="{{ v.image }}" class="object-scale-down" style="height:50px;width:150px;" />
+        {% endif %}
         {{ v.vehicleName }}
     </div>
     <div>
