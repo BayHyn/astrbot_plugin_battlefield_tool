@@ -6,6 +6,7 @@ from astrbot.api import logger
 
 
 API_SITE = "https://api.gametools.network/"
+SUPPORTED_GAMES = ["bf4","bf1", "bfv"]
 
 
 async def request_api(game, prop="stats", params=None, timeout=15, session=None):
@@ -43,8 +44,15 @@ async def request_api(game, prop="stats", params=None, timeout=15, session=None)
                 # 携带状态码和错误信息抛出
                 error_dict = await response.json()
                 error_dict["code"] = response.status
+                error_msg = (
+                    f"玩家 '{ea_name}' 未找到或游戏代号错误\n"
+                    f"• 确认ID: {ea_name}\n"
+                    f"• 游戏代号: {game}\n"
+                    f"• 可用代号: {', '.join(SUPPORTED_GAMES)}"
+                    f"• 原始错误: {error_dict}"
+                )
                 logger.error(f"Battlefield Tool 调用接口失败，错误信息{error_dict}")
-                return error_dict
+                return error_msg
     except aiohttp.ClientError as e:
         error_msg = f"网络请求异常: {str(e)}"
         logger.error(error_msg)
