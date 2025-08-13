@@ -21,7 +21,11 @@ BF1_LOGO = "https://s21.ax1x.com/2025/07/19/pV35O3j.png"
 BFV_LOGO = "https://s21.ax1x.com/2025/07/19/pV35LCQ.png"
 
 #修复部分图标不展示的问题
-SU_50 = "https://s21.ax1x.com/2025/07/23/pVGGFeK.png"
+ERROR_IMG = [
+    {"name":"su-50","repair_url":"https://s21.ax1x.com/2025/07/23/pVGGFeK.png"},
+    {"name":"lav-25","repair_url":"https://s21.ax1x.com/2025/08/13/pVwK8dP.png"},
+    {"name":"lav-ad","repair_url":"https://s21.ax1x.com/2025/08/13/pVwKUzQ.png"},
+]
 
 LOGOS = {"bf3": BF3_LOGO, "bf4": BF4_LOGO, "bf1": BF1_LOGO, "bfv": BFV_LOGO}
 
@@ -71,11 +75,22 @@ def prepare_vehicles_data(d: dict, lens: int):
         {
             **w,
             "__timeInHour": round(w.get("timeIn", 0) / 3600, 2),
-            "image": SU_50 if w.get("vehicleName", "").lower() == "su-50" else w.get("image", "")
+            "image": img_repair_vehicles(w.get("vehicleName", "").lower(),w.get("image", ""))
         }
         for w in vehicles_list[:lens]
         if  w.get("kills", 0) > 0
     ]
+
+def img_repair_vehicles(item_name:str,url:str):
+    """处理问题图片"""
+    for item in ERROR_IMG:
+        logger.info(f"item_name:{item_name}")
+        logger.info(f"item[name]:{item['name']}")
+        if item["name"] == item_name:
+            logger.info(item_name)
+            return item["repair_url"]
+    return url
+
 
 
 def bf_main_html_builder(d, game):
@@ -98,6 +113,7 @@ def bf_main_html_builder(d, game):
     # 整理数据
     weapon_data = prepare_weapons_data(d, 5,game)
     vehicle_data = prepare_vehicles_data(d, 5)
+    logger.info(f"vehicle_data: {vehicle_data}")
 
     html = MAIN_TEMPLATE.render(
         banner=banner,

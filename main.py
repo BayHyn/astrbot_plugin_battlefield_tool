@@ -27,7 +27,7 @@ import aiohttp
     "astrbot_plugin_battlefield_tool",  # name
     "SHOOTING_STAR_C",  # author
     "战地风云战绩查询插件",  # desc
-    "v1.0.5",  # version
+    "v1.0.6",  # version
 )
 class BattlefieldTool(Star):
     STAT_PATTERN = re.compile(
@@ -35,6 +35,7 @@ class BattlefieldTool(Star):
     )  # 正则提取用户名和要查询的游戏
     LANG_CN = "zh-cn"
     LANG_TW = "zh-tw"
+    SUPPORTED_GAMES = ["bf4","bf1", "bfv"]  # 添加支持的游戏列表
 
     def __init__(self, context: Context, config: AstrBotConfig = None):
         super().__init__(context)
@@ -338,6 +339,15 @@ class BattlefieldTool(Star):
                     game = self.default_game
                 else:
                     game = bd_game["default_game_tag"]
+            if game == 'bf5':
+                game = 'bfv'
+            if game not in self.SUPPORTED_GAMES:
+                error_msg = (
+                    f"服务器 '{game}' 未找到\n"
+                    f"• 请检查游戏代号是否正确\n"
+                    f"• 可用代号: {'、'.join(self.SUPPORTED_GAMES)}"
+                )
+                raise ValueError(error_msg)
             # 如果没有传入ea_name则查询已绑定的
             if ea_name is None:
                 bind_data = await self.db_service.query_bind_user(qq_id)
@@ -472,7 +482,7 @@ class BattlefieldTool(Star):
     @filter.command("bf_help")
     async def bf_help(self, event: AstrMessageEvent):
         """显示战地插件帮助信息"""
-        help_msg = """战地风云插件使用帮助：
+        help_msg = f"""战地风云插件使用帮助：
 1. 账号绑定
 命令: /bind [ea_name] 或 /绑定 [ea_name]
 参数: ea_name - 您的EA账号名
@@ -480,7 +490,7 @@ class BattlefieldTool(Star):
 
 2. 默认查询设置
 命令: /bf_init [游戏代号]
-参数: 游戏代号(bf4/bf1/bfv等)
+参数: 游戏代号 {", ".join(self.SUPPORTED_GAMES)}
 注意: 私聊都能使用，群聊中仅bot管理员可用
 
 3. 战绩查询
@@ -513,3 +523,5 @@ class BattlefieldTool(Star):
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件卸载/停用时会调用。"""
+        if self._session:
+            await self._session.close()
