@@ -27,7 +27,7 @@ import aiohttp
     "astrbot_plugin_battlefield_tool",  # name
     "SHOOTING_STAR_C",  # author
     "战地风云战绩查询插件",  # desc
-    "v1.0.7",  # version
+    "v1.0.8",  # version
 )
 class BattlefieldTool(Star):
     STAT_PATTERN = re.compile(
@@ -35,7 +35,7 @@ class BattlefieldTool(Star):
     )  # 正则提取用户名和要查询的游戏
     LANG_CN = "zh-cn"
     LANG_TW = "zh-tw"
-    SUPPORTED_GAMES = ["bf4","bf1", "bfv"]  # 添加支持的游戏列表
+    SUPPORTED_GAMES = ["bf4","bf1", "bfv","bf6"]  # 添加支持的游戏列表
 
     def __init__(self, context: Context, config: AstrBotConfig = None):
         super().__init__(context)
@@ -81,6 +81,10 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{ea_name}，所查询游戏:{game}")
+        if game == 'bf6':
+            yield event.plain_result("实验性功能，ea_name需要大小写完全匹配，如果是空图片那就是没有查询到")
+            yield event.image_result(f"https://drop-api.ea.com/player/{ea_name}/image?gameSlug=battlefield-6&eventName=OpenBetaWeekend1&aspectRatio=9x16&locale=zh-hans")
+            return
         player_data = await request_api(
             game,
             "all",
@@ -93,7 +97,6 @@ class BattlefieldTool(Star):
             event, player_data, "stat", game
         ):
             yield result
-
     @filter.command("weapons", alias=["武器"])
     async def bf_weapons(self, event: AstrMessageEvent):
         """查询用户武器数据"""
