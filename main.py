@@ -27,11 +27,11 @@ import aiohttp
     "astrbot_plugin_battlefield_tool",  # name
     "SHOOTING_STAR_C",  # author
     "战地风云战绩查询插件",  # desc
-    "v1.0.6",  # version
+    "v1.0.7",  # version
 )
 class BattlefieldTool(Star):
     STAT_PATTERN = re.compile(
-        r"^(\w*)(?:[，,]?game=([\w\-+.]+))?$"
+        r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?$"
     )  # 正则提取用户名和要查询的游戏
     LANG_CN = "zh-cn"
     LANG_TW = "zh-tw"
