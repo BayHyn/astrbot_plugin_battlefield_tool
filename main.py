@@ -27,7 +27,7 @@ import aiohttp
     "astrbot_plugin_battlefield_tool",  # name
     "SHOOTING_STAR_C",  # author
     "战地风云战绩查询插件",  # desc
-    "v1.0.8",  # version
+    "v1.0.9",  # version
 )
 class BattlefieldTool(Star):
     STAT_PATTERN = re.compile(
@@ -82,7 +82,7 @@ class BattlefieldTool(Star):
 
         logger.info(f"玩家id:{ea_name}，所查询游戏:{game}")
         if game == 'bf6':
-            bf6_img_url = f"https://drop-api.ea.com/player/{ea_name}/image?gameSlug=battlefield-6&eventName=OpenBetaWeekend1&aspectRatio=9x16&locale=zh-hans"
+            bf6_img_url = f"https://drop-api.ea.com/player/{ea_name}/image?gameSlug=battlefield-6&eventName=OpenBetaWeekend2&aspectRatio=9x16&locale=zh-hans"
             res_code = await check_image_url_status(bf6_img_url)
             if res_code  == 200:
                 yield event.image_result(bf6_img_url)
