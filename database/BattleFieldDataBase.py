@@ -49,7 +49,7 @@ class BattleFieldDataBase:
 
     async def initialize(self):
         """异步初始化数据库"""
-        logger.debug("开始初始化战场工具数据库...")
+        logger.debug("开始初始化战地风云工具数据库...")
         # 先获取主连接
         self._conn = await self._get_conn()
         logger.debug(f"数据库连接已建立: {self._conn}")
