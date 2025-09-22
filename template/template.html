@@ -4,12 +4,14 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <title></title>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        bb: '#111B2B',
+                        bb: 'var(--bg-color)',
+                        dynamicBg: 'var(--bg-color)',
                     }
                 }
             }
@@ -17,7 +19,7 @@
     </script>
     <style type="text/tailwindcss">
         body {
-            background-color: #111B2B;
+            background-color: var(--bg-color);
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
             font-weight: 400;
@@ -31,13 +33,23 @@
             text-align: center;
         }
     </style>
-    <title></title>
+    <style>
+        :root {
+            --bg-color: {{ background_color }};
+        }
+    </style>
 </head>
 
 <body>
+    {% set bg_opacity_map = {
+        'bf1': 'bg-opacity-10',
+        'bf4': 'bg-opacity-50',
+        'bfv': 'bg-opacity-25'
+    } %}
+    {% set current_bg_opacity_class = bg_opacity_map.get(game, 'bg-opacity-10') %}
 
     <div class="bg-cover relative" style="background-image: url('{{ banner }}'); height: 310px;">
-        <div class="absolute inset-0 bg-gradient-to-b from-bb/0 via-bb/10 to-bb/40"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-dynamicBg/0 via-dynamicBg/10 to-dynamicBg/40"></div>
         <div class="relative z-10 flex flex-col items-center justify-center pt-10 pb-10">
             <img src="{{ d.avatar }}" alt="avatar" class="rounded-lg w-32 h-32 object-cover border-2 border-gray-700" />
             <div class="font-bold text-4xl mt-2">{{ d.userName }}</div>
@@ -50,7 +62,7 @@
     </div>
 
     <h2 class="text-white">基本信息</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mx-5 p-4 rounded-lg bg-gray-800 bg-opacity-50">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mx-5 p-4 rounded-lg bg-gray-800 {{ current_bg_opacity_class }}">
         <div class="text-center">
             <div class="text-sm text-yellow-400">击杀</div>
             <div class="text-2xl font-bold font-mono">{{ d.kills }}</div>
@@ -98,7 +110,7 @@
         {% from "weapon_card.html" import weapon_card %}
         {% if weapon_data is not none %}
         {% for weapon in weapon_data %}
-        {{ weapon_card(w=weapon,game=game) }}
+        {{ weapon_card(w=weapon,game=game, bg_opacity_class=current_bg_opacity_class) }}
         {% endfor %}
         {% else %}
         <div class="text-center text-slate-400 py-4">暂无武器数据</div>
@@ -117,7 +129,7 @@
         {% from "vehicle_card.html" import vehicle_card %}
         {% if vehicle_data is not none %}
         {% for vehicle in vehicle_data %}
-        {{ vehicle_card(vehicle) }}
+        {{ vehicle_card(v=vehicle, game=game, bg_opacity_class=current_bg_opacity_class) }}
         {% endfor %}
         {% else %}
         <div class="text-center text-slate-400 py-4">暂无载具数据</div>

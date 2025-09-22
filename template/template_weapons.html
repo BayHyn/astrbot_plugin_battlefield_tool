@@ -4,12 +4,14 @@
 <head>
     <meta name="viewport" content="width=700px,height=10px,initial-scale=1">
     <script src="https://cdn.tailwindcss.com"></script>
+    <title></title>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        bb: '#111B2B',
+                        bb: 'var(--bg-color)',
+                        dynamicBg: 'var(--bg-color)',
                     }
                 }
             }
@@ -17,48 +19,61 @@
     </script>
     <style type="text/tailwindcss">
         body {
-            background-color: #111B2B;
+            background-color: var(--bg-color);
             color: white;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
             font-weight: 400;
             width: 700px;
-            height: 10px;
         }
 
-        t1 {
-            font-size: 1.7em;
+        h2 {
+            font-size: 1.4em;
             font-weight: 700;
-            padding-bottom: 40px;
-
-            margin: 80px 20px 20px;
+            margin: 10px 20px 10px;
             text-align: center;
         }
     </style>
-    <title></title>
+    <style>
+        :root {
+            --bg-color: {{ background_color }};
+        }
+    </style>
 </head>
 
 <body>
+    {% set bg_opacity_map = {
+        'bf1': 'bg-opacity-10',
+        'bf4': 'bg-opacity-30',
+        'bfv': 'bg-opacity-25'
+    } %}
+    {% set current_bg_opacity_class = bg_opacity_map.get(game, 'bg-opacity-10') %}
 
     <div class="bg-cover" style="background-image: url('{{ banner }}');">
-        <div style="margin-left:40px;padding-top: 60px;padding-bottom: 20px; margin-right: 350px;"
-            class="flex flex-col flex-nowarp justify-center items-center">
-            <img src="{{ d.avatar }}" alt="avatar" class="rounded-lg" width="128px" />
-            <div class="font-bold text-3xl">{{ d.userName }}</div>
+        <div class="bg-cover relative" style="background-image: url('{{ banner }}'); height: 310px;">
+            <div class="absolute inset-0 bg-gradient-to-b from-dynamicBg/0 via-dynamicBg/10 to-dynamicBg/40"></div>
+            <div class="relative z-10 flex flex-col items-center justify-center pt-10 pb-10">
+                <img src="{{ d.avatar }}" alt="avatar" class="rounded-lg w-32 h-32 object-cover border-2 border-gray-700" />
+                <div class="font-bold text-4xl mt-2">{{ d.userName }}</div>
+            </div>
         </div>
-        <div class="bg-gradient-to-b from-transparent to-bb" style="padding: 3%;"> &nbsp;</div>
     </div>
-    <t1>武器信息</t1>
-    <br />
-    <div class="flex flex-col justify-center gap-2" style="margin:0px 20px; ">
+    <h2>武器信息</h2>
+    <div class="flex flex-col gap-4 mx-5">
         {% from "weapon_card.html" import weapon_card %}
         {% if weapon_data is not none %}
         {% for weapon in weapon_data %}
-        {{ weapon_card(w=weapon,game=game)}}
-        {% if not loop.last %}<br />{% endif %}
+        {{ weapon_card(w=weapon,game=game, bg_opacity_class=current_bg_opacity_class) }}
         {% endfor %}
         {% else %}
-        <div class="text-center text-slate-400">暂无武器数据</div>
+        <div class="text-center text-slate-400 py-4">暂无武器数据</div>
         {% endif %}
+        <div class="text-center text-slate-400 text-sm mt-2">
+            使用
+            <span class="text-sky-500 font-mono">
+                weapons [玩家id],game={{ game }}
+            </span>
+            查看更多数据
+        </div>
     </div>
     <div class="flex flex-col justify-center items-center text-slate-400 py-3">
         <span>powered by astrbot</span>

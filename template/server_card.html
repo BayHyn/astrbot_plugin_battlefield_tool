@@ -1,5 +1,5 @@
-{% macro server_card(w) %}
-<div class="flex gap-2 rounded-lg" style="padding: 10px; background-color: rgba(255,255,255,0.05);">
+{% macro server_card(w, game, bg_opacity_class) %}
+<div class="flex gap-2 p-4 rounded-lg bg-gray-800 {{ bg_opacity_class }}">
     <div class="flex flex-col justify-center items-center">
         <img src="{{ w.url }}" class="object-scale-down" style="height:90px;width:200px;" />
         {{ w.currentMap }}

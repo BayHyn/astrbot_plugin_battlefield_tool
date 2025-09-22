@@ -11,8 +11,23 @@ BF3_BANNER = "https://s21.ax1x.com/2025/07/16/pV1jG5t.jpg"
 BF4_BANNER = "https://s21.ax1x.com/2025/07/16/pV1XV1S.jpg"
 BF1_BANNER = "https://s1.ax1x.com/2022/12/15/zoMaxe.jpg"
 BFV_BANNER = "https://s1.ax1x.com/2022/12/14/z54oIs.jpg"
-# BF2042_BANNER = "https://s1.ax1x.com/2023/01/24/pSYXS3Q.jpg"
-BANNERS = {"bf3": BF3_BANNER, "bf4": BF4_BANNER, "bf1": BF1_BANNER, "bfv": BFV_BANNER}
+BF2042_BANNER = "https://s1.ax1x.com/2023/01/24/pSYXS3Q.jpg"
+BANNERS = {"bf3": BF3_BANNER, "bf4": BF4_BANNER, "bf1": BF1_BANNER, "bfv": BFV_BANNER, "bf2042": BF2042_BANNER}
+
+# 各代背景色
+BF3_BACKGROUND_COLOR = "#111B2B"
+BF4_BACKGROUND_COLOR = "#111B2B"
+BF1_BACKGROUND_COLOR = "rgb(139 81 41)"
+BFV_BACKGROUND_COLOR = "rgb(38 62 112)"
+BF2042_BACKGROUND_COLOR = "#111B2B"
+
+BACKGROUND_COLORS = {
+    "bf3": BF3_BACKGROUND_COLOR,
+    "bf4": BF4_BACKGROUND_COLOR,
+    "bf1": BF1_BACKGROUND_COLOR,
+    "bfv": BFV_BACKGROUND_COLOR,
+    "bf2042": BF2042_BACKGROUND_COLOR,
+}
 
 
 BF3_LOGO = "https://s21.ax1x.com/2025/07/19/pV3I9ET.png"
@@ -99,7 +114,8 @@ def bf_main_html_builder(d, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS[game]
+    banner = BANNERS.get(game, BFV_BANNER) # 使用.get()方法，提供默认值
+    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR) # 获取背景色
     if d.get("avatar") is None:
         d["avatar"] = DEFAULT_AVATAR
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d["__update_time"]))
@@ -109,7 +125,7 @@ def bf_main_html_builder(d, game):
 
     # 整理数据
     weapon_data = prepare_weapons_data(d, 3,game)
-    vehicle_data = prepare_vehicles_data(d, 4)
+    vehicle_data = prepare_vehicles_data(d, 3)
 
     html = MAIN_TEMPLATE.render(
         banner=banner,
@@ -118,6 +134,7 @@ def bf_main_html_builder(d, game):
         weapon_data=weapon_data if weapon_data else None,
         vehicle_data=vehicle_data if vehicle_data else None,
         game=game,
+        background_color=background_color, # 传递背景色
     )
     return html
 
@@ -131,7 +148,8 @@ def bf_weapons_html_builder(d, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS[game]
+    banner = BANNERS.get(game, BFV_BANNER)
+    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR)
     if d.get("avatar") is None:
         d["avatar"] = DEFAULT_AVATAR
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d["__update_time"]))
@@ -145,6 +163,7 @@ def bf_weapons_html_builder(d, game):
         d=d,
         weapon_data=weapon_data if weapon_data else None,
         game=game,
+        background_color=background_color,
     )
     return html
 
@@ -158,7 +177,8 @@ def bf_vehicles_html_builder(d, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS[game]
+    banner = BANNERS.get(game, BFV_BANNER)
+    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR)
     if d.get("avatar") is None:
         d["avatar"] = DEFAULT_AVATAR
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d["__update_time"]))
@@ -172,6 +192,7 @@ def bf_vehicles_html_builder(d, game):
         d=d,
         vehicle_data=vehicle_data if vehicle_data else None,
         game=game,
+        background_color=background_color,
     )
     return html
 
@@ -185,8 +206,9 @@ def bf_servers_html_builder(servers_data, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS[game]
-    logo = LOGOS[game]
+    banner = BANNERS.get(game, BFV_BANNER)
+    logo = LOGOS.get(game, BF3_LOGO)
+    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR)
     update_time = time.strftime(
         "%Y-%m-%d %H:%M:%S", time.localtime(servers_data["__update_time"])
     )
@@ -197,5 +219,6 @@ def bf_servers_html_builder(servers_data, game):
         update_time=update_time,
         servers_data=servers_data["servers"] if servers_data else None,
         game=game,
+        background_color=background_color,
     )
     return html
