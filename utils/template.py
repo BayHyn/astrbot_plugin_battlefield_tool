@@ -108,8 +108,8 @@ def bf_main_html_builder(d, game):
     d["longestHeadShot"] = int(d["longestHeadShot"])
 
     # 整理数据
-    weapon_data = prepare_weapons_data(d, 5,game)
-    vehicle_data = prepare_vehicles_data(d, 5)
+    weapon_data = prepare_weapons_data(d, 3,game)
+    vehicle_data = prepare_vehicles_data(d, 3)
 
     html = MAIN_TEMPLATE.render(
         banner=banner,
