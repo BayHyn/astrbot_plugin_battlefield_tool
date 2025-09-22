@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta name="viewport" content="width=700px,height=10px,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -22,15 +22,12 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
             font-weight: 400;
             width: 700px;
-            height: 10px;
         }
 
-        t1 {
-            font-size: 1.7em;
+        h2 {
+            font-size: 1.4em;
             font-weight: 700;
-            padding-bottom: 40px;
-
-            margin: 80px 20px 20px;
+            margin: 10px 20px 10px;
             text-align: center;
         }
     </style>
@@ -39,98 +36,95 @@
 
 <body>
 
-    <div class="bg-cover" style="background-image: url('{{ banner }}');">
-        <div style="margin-left:40px;padding-top: 60px;padding-bottom: 20px; margin-right: 350px;"
-            class="flex flex-col flex-nowarp justify-center items-center">
-            <img src="{{ d.avatar }}" alt="avatar" class="rounded-lg" width="128px" />
-            <div class="font-bold text-3xl">{{ d.userName }}</div>
-            <div class="flex items-center font-semibold text-gray-200">
-                <img src="{{ d.rankImg }}" width="32px" />
-                &nbsp;
+    <div class="bg-cover relative" style="background-image: url('{{ banner }}'); height: 310px;">
+        <div class="absolute inset-0 bg-gradient-to-b from-bb/0 via-bb/10 to-bb/40"></div>
+        <div class="relative z-10 flex flex-col items-center justify-center pt-10 pb-10">
+            <img src="{{ d.avatar }}" alt="avatar" class="rounded-lg w-32 h-32 object-cover border-2 border-gray-700" />
+            <div class="font-bold text-4xl mt-2">{{ d.userName }}</div>
+            <div class="flex items-center font-semibold text-gray-200 mt-1">
+                <img src="{{ d.rankImg }}" width="32px" class="mr-1" />
                 等级 {{ d.rank }}
             </div>
-            <div class="font-semibold text-gray-200">游戏时间：{{ d.__hoursPlayed }} h</div>
+            <div class="font-semibold text-gray-200 mt-1">游戏时间：{{ d.__hoursPlayed }} h</div>
         </div>
-        <div class="bg-gradient-to-b from-transparent to-bb" style="padding: 3%;"> &nbsp;</div>
     </div>
-    <t1>基本信息</t1>
-    <div class="flex flex-col justify-center grid grid-cols-5 gap-4 rounded-lg"
-        style="margin:0px 20px; padding: 10px; background-color: rgba(255,255,255,0.05);">
-        <div>
-            <div class="text-1xl text-yellow-400">击杀</div>
+
+    <h2 class="text-white">基本信息</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mx-5 p-4 rounded-lg bg-gray-800 bg-opacity-50">
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">击杀</div>
             <div class="text-2xl font-bold font-mono">{{ d.kills }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">K/D</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">K/D</div>
             <div class="text-2xl font-bold font-mono">{{ d.killDeath }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">KPM</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">KPM</div>
             <div class="text-2xl font-bold font-mono">{{ d.killsPerMinute }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">爆头率</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">爆头率</div>
             <div class="text-2xl font-bold font-mono">{{ d.headshots }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">命中率</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">命中率</div>
             <div class="text-2xl font-bold font-mono">{{ d.accuracy }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">拉人数</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">急救</div>
             <div class="text-2xl font-bold font-mono">{{ d.revives }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">爆头数</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">爆头</div>
             <div class="text-2xl font-bold font-mono">{{ d.headShots }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">最远爆头</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">最远爆头</div>
             <div class="text-2xl font-bold font-mono">{{ d.longestHeadShot }}m</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">胜利场数</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">胜利场次</div>
             <div class="text-2xl font-bold font-mono">{{ d.wins }}</div>
         </div>
-        <div>
-            <div class="text-1xl text-yellow-400">最高连杀</div>
+        <div class="text-center">
+            <div class="text-sm text-yellow-400">最高连杀</div>
             <div class="text-2xl font-bold font-mono">{{ d.highestKillStreak }}</div>
         </div>
     </div>
-    <t1>武器信息</t1>
-    <br />
-    <div class="flex flex-col justify-center gap-2" style="margin:0px 20px; ">
+
+    <h2 class="text-white">武器信息</h2>
+    <div class="flex flex-col gap-4 mx-5">
         {% from "weapon_card.html" import weapon_card %}
         {% if weapon_data is not none %}
         {% for weapon in weapon_data %}
         {{ weapon_card(w=weapon,game=game) }}
-        {% if not loop.last %}<br />{% endif %}
         {% endfor %}
         {% else %}
-        <div class="text-center text-slate-400">暂无武器数据</div>
+        <div class="text-center text-slate-400 py-4">暂无武器数据</div>
         {% endif %}
-        <div class="text-center text-slate-400">
+        <div class="text-center text-slate-400 text-sm mt-2">
             使用
-            <span class="text-sky-500">
+            <span class="text-sky-500 font-mono">
                 weapons [玩家id],game={{ game }}
             </span>
             查看更多数据
         </div>
     </div>
-    <t1>载具信息</t1>
-    <div class="flex flex-col justify-center gap-2" style="margin:0px 20px;">
+
+    <h2 class="text-white">载具信息</h2>
+    <div class="flex flex-col gap-4 mx-5">
         {% from "vehicle_card.html" import vehicle_card %}
         {% if vehicle_data is not none %}
         {% for vehicle in vehicle_data %}
         {{ vehicle_card(vehicle) }}
-        {% if not loop.last %}<br />{% endif %}
         {% endfor %}
         {% else %}
-        <div class="text-center text-slate-400">暂无载具数据</div>
+        <div class="text-center text-slate-400 py-4">暂无载具数据</div>
         {% endif %}
-        <div class="text-center text-slate-400">
+        <div class="text-center text-slate-400 text-sm mt-1">
             使用
-            <span class="text-sky-500">
+            <span class="text-sky-500 font-mono">
                 vehicles [玩家id],game={{ game }}
             </span>
             查看更多数据

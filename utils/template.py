@@ -109,7 +109,7 @@ def bf_main_html_builder(d, game):
 
     # 整理数据
     weapon_data = prepare_weapons_data(d, 3,game)
-    vehicle_data = prepare_vehicles_data(d, 3)
+    vehicle_data = prepare_vehicles_data(d, 4)
 
     html = MAIN_TEMPLATE.render(
         banner=banner,
