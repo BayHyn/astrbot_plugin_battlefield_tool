@@ -8,11 +8,12 @@ from typing import Optional
 
 
 GAMETOOLS_API_SITE = "https://api.gametools.network/"
-BTR_API_SITE = "http://154.9.228.60:8766/api/"
+BTR_API_SITE = "https://battlefield.shooting-star-c.top/api"
+# BTR_API_SITE = "http://localhost:8766/api"
 SUPPORTED_GAMES = ["bf4","bf1", "bfv"]
 
 
-async def gl_request_api(game, prop="stats", params=None, timeout=15, session=None):
+async def gt_request_api(game, prop="stats", params=None, timeout=15, session=None):
     """
     异步请求API
         Args:
@@ -110,7 +111,7 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
     if params is None:
         params = {}
     url = BTR_API_SITE + prop
-    logger.info(f"Battlefield Tool Request BTR API: {url}，请求参数: {params}")
+    logger.info(f"Battlefield Tool Request API: {url}，请求参数: {params}")
 
     should_close = session is None
     if should_close:
@@ -121,26 +122,24 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
         async with session.get(url, params=params, timeout=timeout_obj) as response:
             if response.status == 200:
                 result = await response.json()
-                result["code"] = response.status
                 return result
             else:
                 error_dict = await response.json()
-                error_dict["code"] = response.status
                 error_msg = (
-                    f"Battlefield Tool 调用BTR接口失败，状态码: {response.status}, 错误信息: {error_dict}"
+                    f"Battlefield Tool 调用接口失败，状态码: {response.status}, 错误信息: {error_dict}"
                 )
                 logger.error(error_msg)
                 return error_dict
     except aiohttp.ClientError as e:
-        error_msg = f"BTR API网络请求异常: {str(e)}"
+        error_msg = f"API网络请求异常: {str(e)}"
         logger.error(error_msg)
         raise ConnectionError(error_msg) from e
     except json.JSONDecodeError as e:
-        error_msg = f"BTR API JSON解析失败: {str(e)}"
+        error_msg = f"API JSON解析失败: {str(e)}"
         logger.error(error_msg)
         raise ValueError(error_msg) from e
     except asyncio.TimeoutError as e:
-        error_msg = f"BTR API请求超时: {timeout}秒内未收到响应"
+        error_msg = f"API请求超时: {timeout}秒内未收到响应"
         logger.error(error_msg)
         raise TimeoutError(error_msg) from e
     finally:

@@ -1,63 +1,21 @@
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from astrbot.api import logger
+from constants.battlefield_constants import (
+    ImageUrls, BackgroundColors, GameMappings, TemplateConstants
+)
 
 import time
 
-PARENT_FOLDER = Path(__file__).parent.parent.resolve()
-
-# 各代的banner
-BF3_BANNER = "https://s21.ax1x.com/2025/07/16/pV1jG5t.jpg"
-BF4_BANNER = "https://s21.ax1x.com/2025/07/16/pV1XV1S.jpg"
-BF1_BANNER = "https://s1.ax1x.com/2022/12/15/zoMaxe.jpg"
-BFV_BANNER = "https://s1.ax1x.com/2022/12/14/z54oIs.jpg"
-BF2042_BANNER = "https://s1.ax1x.com/2023/01/24/pSYXS3Q.jpg"
-BANNERS = {"bf3": BF3_BANNER, "bf4": BF4_BANNER, "bf1": BF1_BANNER, "bfv": BFV_BANNER, "bf2042": BF2042_BANNER}
-
-# 各代背景色
-BF3_BACKGROUND_COLOR = "#111B2B"
-BF4_BACKGROUND_COLOR = "#111B2B"
-BF1_BACKGROUND_COLOR = "rgb(139 81 41)"
-BFV_BACKGROUND_COLOR = "rgb(38 62 112)"
-BF2042_BACKGROUND_COLOR = "#111B2B"
-
-BACKGROUND_COLORS = {
-    "bf3": BF3_BACKGROUND_COLOR,
-    "bf4": BF4_BACKGROUND_COLOR,
-    "bf1": BF1_BACKGROUND_COLOR,
-    "bfv": BFV_BACKGROUND_COLOR,
-    "bf2042": BF2042_BACKGROUND_COLOR,
-}
-
-
-BF3_LOGO = "https://s21.ax1x.com/2025/07/19/pV3I9ET.png"
-BF4_LOGO = "https://s21.ax1x.com/2025/07/19/pV3IRaT.png"
-BF1_LOGO = "https://s21.ax1x.com/2025/07/19/pV35O3j.png"
-BFV_LOGO = "https://s21.ax1x.com/2025/07/19/pV35LCQ.png"
-
-#修复部分图标不展示的问题
-ERROR_IMG = [
-    {"name":"su-50","repair_url":"https://s21.ax1x.com/2025/07/23/pVGGFeK.png"},
-    {"name":"lav-25","repair_url":"https://s21.ax1x.com/2025/08/13/pVwK8dP.png"},
-    {"name":"lav-ad","repair_url":"https://s21.ax1x.com/2025/08/13/pVwKUzQ.png"},
-]
-
-LOGOS = {"bf3": BF3_LOGO, "bf4": BF4_LOGO, "bf1": BF1_LOGO, "bfv": BFV_LOGO}
-
-# 默认头像
-DEFAULT_AVATAR = "https://s21.ax1x.com/2025/07/16/pV1Ox6e.jpg"
-
-# 创建Jinja2环境并设置模板加载路径
-template_dir = PARENT_FOLDER / "template"
-env = Environment(loader=FileSystemLoader(template_dir))
-
-MAIN_TEMPLATE = env.get_template("template.html")
-WEAPONS_TEMPLATE = env.get_template("template_weapons.html")
-VEHICLES_TEMPLATE = env.get_template("template_vehicles.html")
-SERVERS_TEMPLATE = env.get_template("template_servers.html")
-WEAPON_CARD = env.get_template("weapon_card.html")
-VEHICLE_CARD = env.get_template("vehicle_card.html")
-SERVER_CARD = env.get_template("server_card.html")
+# 获取模板
+templates = TemplateConstants.get_templates()
+MAIN_TEMPLATE = templates["main"]
+WEAPONS_TEMPLATE = templates["weapons"]
+VEHICLES_TEMPLATE = templates["vehicles"]
+SERVERS_TEMPLATE = templates["servers"]
+WEAPON_CARD = templates["weapon_card"]
+VEHICLE_CARD = templates["vehicle_card"]
+SERVER_CARD = templates["server_card"]
 
 
 def sort_list_of_dicts(list_of_dicts, key):
@@ -77,7 +35,7 @@ def prepare_weapons_data(d: dict, lens: int,game:str):
         ]
     else:
         return [
-            {**w, "__timeEquippedHours": round(w.get("timeEquipped", 0) / 3600, 2)}
+            {**w, "__timeEquippedHours": round(w.get("timeEquipped", 0) / 3600, 1)}
             for w in weapons_list[:lens]
             if  w.get("kills", 0) > 0
         ]
@@ -89,7 +47,7 @@ def prepare_vehicles_data(d: dict, lens: int):
     return [
         {
             **w,
-            "__timeInHour": round(w.get("timeIn", 0) / 3600, 2),
+            "__timeInHour": round(w.get("timeIn", 0) / 3600, 1),
             "image": img_repair_vehicles(w.get("vehicleName", "").lower(),w.get("image", ""))
         }
         for w in vehicles_list[:lens]
@@ -98,7 +56,7 @@ def prepare_vehicles_data(d: dict, lens: int):
 
 def img_repair_vehicles(item_name:str,url:str):
     """处理问题图片"""
-    for item in ERROR_IMG:
+    for item in ImageUrls.ERROR_IMG:
         if item["name"] == item_name:
             return item["repair_url"]
     return url
@@ -114,12 +72,12 @@ def bf_main_html_builder(d, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS.get(game, BFV_BANNER) # 使用.get()方法，提供默认值
-    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR) # 获取背景色
+    banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER) # 使用.get()方法，提供默认值
+    background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR) # 获取背景色
     if d.get("avatar") is None:
-        d["avatar"] = DEFAULT_AVATAR
+        d["avatar"] = ImageUrls.DEFAULT_AVATAR
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d["__update_time"]))
-    d["__hoursPlayed"] = round(d["secondsPlayed"] / 3600, 2)
+    d["__hoursPlayed"] = round(d["secondsPlayed"] / 3600, 1)
     d["revives"] = int(d["revives"])
     d["longestHeadShot"] = int(d["longestHeadShot"])
 
@@ -148,10 +106,10 @@ def bf_weapons_html_builder(d, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS.get(game, BFV_BANNER)
-    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR)
+    banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER)
+    background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
     if d.get("avatar") is None:
-        d["avatar"] = DEFAULT_AVATAR
+        d["avatar"] = ImageUrls.DEFAULT_AVATAR
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d["__update_time"]))
 
     # 整理数据
@@ -177,10 +135,10 @@ def bf_vehicles_html_builder(d, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS.get(game, BFV_BANNER)
-    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR)
+    banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER)
+    background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
     if d.get("avatar") is None:
-        d["avatar"] = DEFAULT_AVATAR
+        d["avatar"] = ImageUrls.DEFAULT_AVATAR
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(d["__update_time"]))
 
     # 整理数据
@@ -206,9 +164,9 @@ def bf_servers_html_builder(servers_data, game):
     Returns:
         构建的Html
     """
-    banner = BANNERS.get(game, BFV_BANNER)
-    logo = LOGOS.get(game, BF3_LOGO)
-    background_color = BACKGROUND_COLORS.get(game, BF3_BACKGROUND_COLOR)
+    banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER)
+    logo = GameMappings.LOGOS.get(game, ImageUrls.BF3_LOGO)
+    background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
     update_time = time.strftime(
         "%Y-%m-%d %H:%M:%S", time.localtime(servers_data["__update_time"])
     )

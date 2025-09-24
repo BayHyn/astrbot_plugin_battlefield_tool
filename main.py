@@ -1,4 +1,9 @@
+import sys
+import os
 import time
+
+# 将插件的根目录添加到 Python 路径
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, StarTools, register
@@ -6,14 +11,10 @@ from astrbot.api.all import AstrBotConfig
 from astrbot.api import logger
 
 from typing import Union
-from data.plugins.astrbot_plugin_battlefield_tool.utils.RequestUtil import (gl_request_api,check_image_url_status)
-from data.plugins.astrbot_plugin_battlefield_tool.database.BattleFieldDataBase import (
-    BattleFieldDataBase,
-)
-from data.plugins.astrbot_plugin_battlefield_tool.database.BattleFieldDBService import (
-    BattleFieldDBService,
-)
-from data.plugins.astrbot_plugin_battlefield_tool.utils.handlers import BattlefieldHandlers, PlayerDataRequest
+from utils.request_util import (gt_request_api, check_image_url_status, btr_request_api)
+from database.battlefield_database import BattleFieldDataBase
+from database.battlefield_db_service import BattleFieldDBService
+from utils.handlers import BattlefieldHandlers, PlayerDataRequest
 
 import aiohttp
 
@@ -36,11 +37,13 @@ class BattlefieldTool(Star):
             self.default_game = "bfv"
             self.timeout_config = 15
             self.img_quality = 90
+            self.btr_token = ""
         else:
             logger.debug("BattlefieldTool: 使用用户配置文件")
             self.default_game = config.get("default_game", "bfv")
             self.timeout_config = config.get("timeout_config", 15)
             self.img_quality = config.get("img_quality", 90)
+            self.btr_token = config.get("token", "")
 
         self.bf_data_path = StarTools.get_data_dir("battleField_tool_plugin")
         self.db = BattleFieldDataBase(self.bf_data_path)  # 初始化数据库
@@ -65,21 +68,7 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        if request_data.game == 'bf6':
-            async for result in self.handlers._handle_bf6_stat(event, request_data.ea_name):
-                yield result
-            return
-        player_data = await gl_request_api(
-            request_data.game,
-            "all",
-            {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
-            self.timeout_config,
-            session=self._session,
-        )
-
-        async for result in self.handlers._process_api_response(
-            event, player_data, "stat", request_data.game, self.html_render
-        ):
+        async for result in self._fetch_and_process_data(event, request_data, "all", "stat"):
             yield result
 
     @filter.command("weapons", alias=["武器"])
@@ -92,17 +81,7 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        player_data = await gl_request_api(
-            request_data.game,
-            "weapons",
-            {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
-            self.timeout_config,
-            session=self._session,
-        )
-
-        async for result in self.handlers._process_api_response(
-            event, player_data, "weapons", request_data.game, self.html_render
-        ):
+        async for result in self._fetch_and_process_data(event, request_data, "weapons", "weapons"):
             yield result
 
     @filter.command("vehicles", alias=["载具"])
@@ -115,17 +94,24 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        player_data = await gl_request_api(
-            request_data.game,
-            "vehicles",
-            {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
-            self.timeout_config,
-            session=self._session,
-        )
+        async for result in self._fetch_and_process_data(event, request_data, "vehicles", "vehicles"):
+            yield result
 
-        async for result in self.handlers._process_api_response(
-            event, player_data, "vehicles", request_data.game, self.html_render
-        ):
+    @filter.command("soldier", alias=["专家"])
+    async def bf_soldier(self, event: AstrMessageEvent):
+        """查询专家数据 (仅限bf2042)"""
+        request_data = await self.handlers._handle_player_data_request(event, ["soldier", "专家"])
+
+        if request_data.error_msg:
+            yield event.plain_result(request_data.error_msg)
+            return
+        
+        if request_data.game != 'bf2042':
+            yield event.plain_result("专家查询目前仅支持战地2042。")
+            return
+
+        logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
+        async for result in self._fetch_and_process_data(event, request_data, "/player/soldier", "soldier"):
             yield result
 
     @filter.command("servers", alias=["服务器"])
@@ -141,7 +127,7 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"查询服务器:{request_data.server_name}，所查询游戏:{request_data.game}")
-        servers_data = await gl_request_api(
+        servers_data = await gt_request_api(
             request_data.game,
             "servers",
             {
@@ -179,7 +165,7 @@ class BattlefieldTool(Star):
             yield event.plain_result(request_data.error_msg)
             return
         # 调用bfv的接口查询用户是否存在
-        player_data = await gl_request_api(
+        player_data = await gt_request_api(
             self.default_game,
             "stats",
             {"name": request_data.ea_name, "lang": "zh-cn", "platform": self.handlers.default_platform},
@@ -200,6 +186,51 @@ class BattlefieldTool(Star):
             # 持久化绑定数据
             msg = await self.db_service.upsert_user_bind(request_data.qq_id, request_data.ea_name, ea_id)
             yield event.plain_result(msg)
+
+    async def _fetch_and_process_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, prop: str, data_type: str):
+        """
+        根据游戏类型获取数据并处理响应。
+        """
+        api_data = None
+        if request_data.game in ['bf6', 'bf2042']:
+            btr_prop_map = {
+                "stat": "/player/stat",
+                "weapons": "/player/weapons",
+                "vehicles": "/player/vehicles",
+                "soldier": "/player/soldier",
+            }
+            btr_prop = btr_prop_map.get(data_type)
+            if btr_prop is None:
+                yield event.plain_result(f"不支持的游戏类型 '{data_type}' 用于bf6/bf2042查询。")
+                return
+            
+            # 专家查询仅限bf2042
+            if data_type == "soldier" and request_data.game != "bf2042":
+                yield event.plain_result("专家查询目前仅支持战地2042。")
+                return
+
+            api_data = await btr_request_api(
+                btr_prop,
+                {"player_name": request_data.ea_name, "game": request_data.game},
+                self.timeout_config,
+                session=self._session,
+            )
+            async for result in self.handlers._handle_btr_response(event, api_data):
+                yield result
+            return
+        else:
+            api_data = await gt_request_api(
+                request_data.game,
+                prop,
+                {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
+                self.timeout_config,
+                session=self._session,
+            )
+
+            async for result in self.handlers._process_api_response(
+                event, api_data, data_type, request_data.game, self.html_render
+            ):
+                yield result
 
     @filter.command("bf_init")
     async def bf_init(self, event: AstrMessageEvent):
@@ -264,7 +295,14 @@ class BattlefieldTool(Star):
 参数同上
 示例: {{唤醒词}}vehicles ExamplePlayer
 
-6. 服务器查询
+6. 专家查询
+命令: {{唤醒词}}soldier [ea_name],game=bf2042 或 {{唤醒词}}专家 [ea_name],game=bf2042
+参数:
+  ea_name - EA账号名(可选，已绑定则可不填)
+  game - 游戏代号(必填，且必须为bf2042)
+示例: {{唤醒词}}soldier ExamplePlayer,game=bf2042
+
+7. 服务器查询
 命令: {{唤醒词}}servers [server_name],game=[游戏代号] 或 {{唤醒词}}服务器 [server_name],game=[游戏代号]
 参数:
   server_name - 服务器名称(必填)

@@ -1,5 +1,5 @@
 from typing import Optional, Dict
-from data.plugins.astrbot_plugin_battlefield_tool.database.BattleFieldDataBase import (
+from .battlefield_database import (
     BattleFieldDataBase,
 )
 

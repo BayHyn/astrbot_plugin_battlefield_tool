@@ -2,11 +2,10 @@ from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
 from typing import Union, Pattern
-from data.plugins.astrbot_plugin_battlefield_tool.utils.RequestUtil import (gl_request_api,check_image_url_status)
-from data.plugins.astrbot_plugin_battlefield_tool.database.BattleFieldDBService import (
+from database.battlefield_db_service import (
     BattleFieldDBService,
 )
-from data.plugins.astrbot_plugin_battlefield_tool.utils.template import (
+from utils.gt_template import (
     bf_main_html_builder,
     bf_weapons_html_builder,
     bf_vehicles_html_builder,
@@ -16,7 +15,7 @@ from data.plugins.astrbot_plugin_battlefield_tool.utils.template import (
 from dataclasses import dataclass
 import re
 import time
-
+import json
 
 # 定义图片裁剪的通用参数
 COMMON_CLIP_PARAMS = {"x": 0, "y": 0, "width": 700}
@@ -34,16 +33,17 @@ class PlayerDataRequest:
 
 
 class BattlefieldHandlers:
-    def __init__(self, db_service: BattleFieldDBService, default_game: str, timeout_config: int, img_quality: int, session, default_platform: str = "pc"):
+    def __init__(self, db_service: BattleFieldDBService, default_game: str, timeout_config: int, img_quality: int,
+                 session, default_platform: str = "pc"):
         self.db_service = db_service
         self.default_game = default_game
         self.timeout_config = timeout_config
         self.img_quality = img_quality
         self._session = session
-        self.default_platform = default_platform # 添加默认平台配置
+        self.default_platform = default_platform  # 添加默认平台配置
         self.LANG_CN = "zh-cn"
         self.LANG_TW = "zh-tw"
-        self.SUPPORTED_GAMES = ["bf4","bf1", "bfv","bf6"]
+        self.SUPPORTED_GAMES = ["bf4", "bf1", "bfv", "bf6", "bf2042"]
         self.STAT_PATTERN = re.compile(
             r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?$"
         )
@@ -54,7 +54,8 @@ class BattlefieldHandlers:
             return event.get_group_id()
         return event.get_sender_id()
 
-    async def _resolve_game_tag(self, game_input: Union[str, None], session_channel_id: str) -> tuple[Union[str, None], Union[str, None]]:
+    async def _resolve_game_tag(self, game_input: Union[str, None], session_channel_id: str) -> tuple[
+        Union[str, None], Union[str, None]]:
         """
         解析游戏代号，获取默认值并进行验证。
         Returns:
@@ -79,10 +80,11 @@ class BattlefieldHandlers:
                 f"• 请检查游戏代号是否正确\n"
                 f"• 可用代号: {'、'.join(self.SUPPORTED_GAMES)}"
             )
-            game = None # 确保在错误时返回None
+            game = None  # 确保在错误时返回None
         return game, error_msg
 
-    async def _resolve_ea_name(self, ea_name_input: Union[str, None], qq_id: str) -> tuple[Union[str, None], Union[str, None]]:
+    async def _resolve_ea_name(self, ea_name_input: Union[str, None], qq_id: str) -> tuple[
+        Union[str, None], Union[str, None]]:
         """
         解析EA账号名，获取默认值。
         Returns:
@@ -99,14 +101,12 @@ class BattlefieldHandlers:
                 ea_name = bind_data["ea_name"]
         return ea_name, error_msg
 
-    async def _handle_bf6_stat(self, event: AstrMessageEvent, ea_name: str):
-        """处理bf6的特殊查询逻辑"""
-        bf6_img_url = f"https://drop-api.ea.com/player/{ea_name}/image?gameSlug=battlefield-6&eventName=OpenBetaWeekend2&aspectRatio=9x16&locale=zh-hans"
-        res_code = await check_image_url_status(bf6_img_url)
-        if res_code == 200:
-            yield event.image_result(bf6_img_url)
-        else:
-            yield event.plain_result("此实验性功能，没有查询到，ea_name需要大小写完全匹配")
+    async def _handle_btr_response(self, event: AstrMessageEvent, api_data):
+        """处理bf6/bf2042等新API的响应逻辑"""
+
+        # 暂时将原始JSON数据作为纯文本结果返回，待后续进行数据适配
+        logger.info(f"BF新API原始数据 (待适配):\n{json.dumps(api_data, indent=2, ensure_ascii=False)}")
+        yield event.plain_result("查询完成")
 
     def _handle_error_response(self, api_data: dict) -> Union[str, None]:
         """统一处理API响应中的错误信息"""
@@ -117,7 +117,7 @@ class BattlefieldHandlers:
             if errors and isinstance(errors, list) and len(errors) > 0:
                 return errors[0]
             return "API返回未知错误"
-        return None # 没有错误
+        return None  # 没有错误
 
     async def _process_api_response(self, event, api_data, data_type, game, html_render_func):
         """处理API响应通用逻辑"""
@@ -140,7 +140,7 @@ class BattlefieldHandlers:
         yield event.image_result(pic_url)
 
     async def _handle_player_data_request(
-        self, event: AstrMessageEvent, str_to_remove_list: list
+            self, event: AstrMessageEvent, str_to_remove_list: list
     ) -> PlayerDataRequest:
         """
         从消息中提取参数
@@ -153,7 +153,7 @@ class BattlefieldHandlers:
         message_str = event.message_str
         lang = self.LANG_CN
         qq_id = event.get_sender_id()
-        session_channel_id = self._get_session_channel_id(event) # 使用辅助方法获取session_channel_id
+        session_channel_id = self._get_session_channel_id(event)  # 使用辅助方法获取session_channel_id
         error_msg = None
         ea_name = None
         game = None
@@ -167,18 +167,18 @@ class BattlefieldHandlers:
             # 由于共用解析方法所以这里赋个值
             if str_to_remove_list == ["servers", "服务器"]:
                 server_name = ea_name
-            
+
             # 处理游戏代号
             game, game_error = await self._resolve_game_tag(game, session_channel_id)
             if game_error:
                 error_msg = game_error
-                raise ValueError(error_msg) # 抛出异常以便被捕获
+                raise ValueError(error_msg)  # 抛出异常以便被捕获
 
             # 处理EA账号名
             ea_name, ea_name_error = await self._resolve_ea_name(ea_name, qq_id)
             if ea_name_error:
                 error_msg = ea_name_error
-                raise ValueError(error_msg) # 抛出异常以便被捕获
+                raise ValueError(error_msg)  # 抛出异常以便被捕获
 
             # 战地1使用繁中
             if game == "bf1":
@@ -198,9 +198,9 @@ class BattlefieldHandlers:
 
     @staticmethod
     async def _parse_input_regex(
-        str_to_remove_list: list[str],
-        pattern: Union[Pattern[str], None],
-        base_string: str,
+            str_to_remove_list: list[str],
+            pattern: Union[Pattern[str], None],
+            base_string: str,
     ):
         """私有方法：从base_string中移除str_to_remove_list并去空格，然后根据正则取出参数
         Args:
