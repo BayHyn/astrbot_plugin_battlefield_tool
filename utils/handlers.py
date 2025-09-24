@@ -117,7 +117,7 @@ class BattlefieldHandlers:
             if errors and isinstance(errors, list) and len(errors) > 0:
                 return errors[0]
             return "API返回未知错误"
-        return None  # 没有错误
+        return None
 
     async def _process_api_response(self, event, api_data, data_type, game, html_render_func):
         """处理API响应通用逻辑"""
