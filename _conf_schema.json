@@ -1,6 +1,6 @@
 {
   "default_game": {
-    "hint": "默认查询哪一代战地，可选值：[bf4,bf1,bfv]",
+    "hint": "默认查询哪一代战地，可选值：[bf4,bf1,bfv,bf2042]",
     "description": "默认查询",
     "type": "string",
     "default": "bfv"
@@ -12,9 +12,15 @@
     "default": 15
   },
   "img_quality": {
-    "hint": "图片质量",
-    "description": "渲染图片的质量(0-100)",
+    "hint": "渲染图片的质量(0-100)",
+    "description": "图片质量",
     "type": "int",
     "default": 90
+  },
+  "ssc_token":{
+    "hint": "为避免api被滥用，所以做了限流，没有token限制每分钟5次(bf2042)",
+    "description": "请求token",
+    "type": "string",
+    "default": ""
   }
 }
