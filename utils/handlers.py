@@ -6,16 +6,24 @@ from database.battlefield_db_service import (
     BattleFieldDBService,
 )
 from utils.gt_template import (
-    bf_main_html_builder,
-    bf_weapons_html_builder,
-    bf_vehicles_html_builder,
-    bf_servers_html_builder,
+    gt_main_html_builder,
+    gt_weapons_html_builder,
+    gt_vehicles_html_builder,
+    gt_servers_html_builder,
 )
+from utils.btr_template import (
+    btr_main_html_builder,
+    btr_weapons_html_builder,
+    btr_vehicles_html_builder,
+    btr_soldier_html_builder,
+)
+from utils.gt_image_generator import GtImageGenerator
+from utils.btr_image_generator import BtrImageGenerator
 
 from dataclasses import dataclass
+
 import re
 import time
-import json
 
 # 定义图片裁剪的通用参数
 COMMON_CLIP_PARAMS = {"x": 0, "y": 0, "width": 700}
@@ -47,6 +55,8 @@ class BattlefieldHandlers:
         self.STAT_PATTERN = re.compile(
             r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?$"
         )
+        self.gt_image_generator = GtImageGenerator(img_quality)
+        self.btr_image_generator = BtrImageGenerator(img_quality)
 
     def _get_session_channel_id(self, event: AstrMessageEvent) -> str:
         """根据事件类型获取会话渠道ID"""
@@ -101,12 +111,22 @@ class BattlefieldHandlers:
                 ea_name = bind_data["ea_name"]
         return ea_name, error_msg
 
-    async def _handle_btr_response(self, event: AstrMessageEvent, api_data):
+    async def _handle_btr_response(self,event, data_type, game, html_render_func, stat_data, weapon_data: list = None,
+                                   vehicle_data=None, soldier_data=None,
+                                   ):
         """处理bf6/bf2042等新API的响应逻辑"""
+        handler_map = {
+            "stat": (self.btr_image_generator.generate_main_btr_data_pic, btr_main_html_builder),
+            "weapons": (self.btr_image_generator.generate_weapons_btr_data_pic, btr_weapons_html_builder),
+            "vehicles": (self.btr_image_generator.generate_vehicles_btr_data_pic, btr_vehicles_html_builder),
+            "soldiers": (self.btr_image_generator.generate_soldiers_btr_data_pic, btr_soldier_html_builder),
+        }
 
-        # 暂时将原始JSON数据作为纯文本结果返回，待后续进行数据适配
-        logger.info(f"BF新API原始数据 (待适配):\n{json.dumps(api_data, indent=2, ensure_ascii=False)}")
-        yield event.plain_result("查询完成")
+        generator_func, html_builder_func = handler_map[data_type]
+
+        pic_url = await generator_func(game, html_render_func, html_builder_func, stat_data, weapon_data, vehicle_data,
+                                       soldier_data)
+        yield event.image_result(pic_url)
 
     def _handle_error_response(self, api_data: dict) -> Union[str, None]:
         """统一处理API响应中的错误信息"""
@@ -130,13 +150,14 @@ class BattlefieldHandlers:
 
         # 根据数据类型调用对应的图片生成方法
         handler_map = {
-            "stat": self._main_data_to_pic,
-            "weapons": self._weapons_data_to_pic,
-            "vehicles": self._vehicles_data_to_pic,
-            "servers": self._servers_data_to_pic,
+            "stat": (self.gt_image_generator.generate_main_gt_data_pic, gt_main_html_builder),
+            "weapons": (self.gt_image_generator.generate_weapons_gt_data_pic, gt_weapons_html_builder),
+            "vehicles": (self.gt_image_generator.generate_vehicles_gt_data_pic, gt_vehicles_html_builder),
+            "servers": (self.gt_image_generator.generate_servers_gt_data_pic, gt_servers_html_builder),
         }
 
-        pic_url = await handler_map[data_type](api_data, game, html_render_func)
+        generator_func, html_builder_func = handler_map[data_type]
+        pic_url = await generator_func(api_data, game, html_render_func, html_builder_func)
         yield event.image_result(pic_url)
 
     async def _handle_player_data_request(
@@ -224,89 +245,3 @@ class BattlefieldHandlers:
             ea_name = clean_str.strip()
             game = None
         return ea_name, game
-
-    async def _main_data_to_pic(self, data: dict, game: str, html_render_func):
-        """将查询的全部数据转为图片
-        Args:
-            data:查询到的战绩数据等
-        Returns:
-            返回生成的图片
-        """
-        html = bf_main_html_builder(data, game)
-        url = await html_render_func(
-            html,
-            {},
-            True,
-            {
-                "timeout": 10000,
-                "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": 2353},
-            },
-        )
-        return url
-
-    async def _weapons_data_to_pic(self, data: dict, game: str, html_render_func):
-        """将查询的数据转为图片
-        Args:
-            data:查询到的战绩数据等
-        Returns:
-            返回生成的图片
-        """
-        html = bf_weapons_html_builder(data, game)
-        url = await html_render_func(
-            html,
-            {},
-            True,
-            {
-                "timeout": 10000,
-                "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": 10000},
-            },
-        )
-        return url
-
-    async def _vehicles_data_to_pic(self, data: dict, game: str, html_render_func):
-        """将查询的数据转为图片
-        Args:
-            data:查询到的战绩数据等
-        Returns:
-            返回生成的图片
-        """
-        html = bf_vehicles_html_builder(data, game)
-        url = await html_render_func(
-            html,
-            {},
-            True,
-            {
-                "timeout": 10000,
-                "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": 10000},
-            },
-        )
-        return url
-
-    async def _servers_data_to_pic(self, data: dict, game: str, html_render_func):
-        """将查询的服务器数据转为图片
-        Args:
-            data:查询到的战绩数据等
-        Returns:
-            返回生成的图片
-        """
-        # 数据量较少时设置高度
-        height = 10000
-        if data["servers"] is not None and len(data["servers"]) == 1:
-            height = 450
-        elif data["servers"] is not None and len(data["servers"]) == 2:
-            height = 620
-        html = bf_servers_html_builder(data, game)
-        url = await html_render_func(
-            html,
-            {},
-            True,
-            {
-                "timeout": 10000,
-                "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": height},
-            },
-        )
-        return url

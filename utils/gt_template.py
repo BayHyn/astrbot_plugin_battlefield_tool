@@ -1,19 +1,19 @@
 from astrbot.api import logger
 from constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
-from models.entities import PlayerStats, Weapon, Vehicle # 导入实体类
+from models.gt_entities import PlayerStats, Weapon, Vehicle # 导入实体类
 from typing import List
 
 import time
 
 # 获取模板
 templates = TemplateConstants.get_templates()
-MAIN_TEMPLATE = templates["main"]
-WEAPONS_TEMPLATE = templates["weapons"]
-VEHICLES_TEMPLATE = templates["vehicles"]
-SERVERS_TEMPLATE = templates["servers"]
-WEAPON_CARD = templates["weapon_card"]
-VEHICLE_CARD = templates["vehicle_card"]
-SERVER_CARD = templates["server_card"]
+MAIN_TEMPLATE = templates["gt_main"]
+WEAPONS_TEMPLATE = templates["gt_weapons"]
+VEHICLES_TEMPLATE = templates["gt_vehicles"]
+SERVERS_TEMPLATE = templates["gt_servers"]
+WEAPON_CARD = templates["gt_weapon_card"]
+VEHICLE_CARD = templates["gt_vehicle_card"]
+SERVER_CARD = templates["gt_server_card"]
 
 
 def sort_list_of_dicts(list_of_dicts, key):
@@ -34,7 +34,7 @@ def prepare_weapons_data(d: dict, lens: int, game: str) -> List[Weapon]:
                 w_data["timeSpent"] = "0" # bf4 武器时间不显示，设为0
             
             # 计算 kpm 和 timeEquipped 并转换为 str 类型
-            w_data["killsPerMinute"] = str(round(w_data.get("killsPerMinute", 0.0), 2))
+            w_data["kills_per_minute"] = str(round(w_data.get("kills_per_minute", 0.0), 2))
             w_data["timeSpent"] = str(round(w_data.get("timeEquipped", 0.0) / 3600, 1)) # 转换为小时
 
             # 创建 Weapon 对象
@@ -55,7 +55,7 @@ def prepare_vehicles_data(d: dict, lens: int) -> List[Vehicle]:
             v_data["image"] = img_repair_vehicles(v_data.get("vehicleName", "").lower(), v_data.get("image", ""))
             
             # 计算 kpm 和 timeSpent 并转换为 str 类型
-            v_data["killsPerMinute"] = str(round(v_data.get("killsPerMinute", 0.0), 2))
+            v_data["kills_per_minute"] = str(round(v_data.get("kills_per_minute", 0.0), 2))
             v_data["timeSpent"] = str(round(v_data.get("timeIn", 0.0) / 3600, 1)) # 转换为小时
 
             # 创建 Vehicle 对象
@@ -73,7 +73,7 @@ def img_repair_vehicles(item_name:str,url:str):
 
 
 
-def bf_main_html_builder(raw_data: dict, game: str) -> str:
+def gt_main_html_builder(raw_data: dict, game: str) -> str:
     """
     构建主要html
     Args:
@@ -83,20 +83,19 @@ def bf_main_html_builder(raw_data: dict, game: str) -> str:
         构建的Html
     """
     banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER)
-    background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
+    background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BFV_BACKGROUND_COLOR)
 
-    # 预处理原始数据，使其符合 PlayerStats.from_dict 的期望
+    # 预处理原始数据，使其符合 PlayerStats.from_gt_dict 的期望
     processed_data = raw_data.copy()
     if processed_data.get("avatar") is None:
         processed_data["avatar"] = ImageUrls.DEFAULT_AVATAR
-    
-    # 计算 hoursPlayed 并添加到 processed_data，以便 PlayerStats.from_dict 使用
-    processed_data["__hoursPlayed"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
+
+    processed_data["__hours_played"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
     processed_data["revives"] = int(processed_data.get("revives", 0))
-    processed_data["longestHeadShot"] = int(processed_data.get("longestHeadShot", 0))
+    processed_data["longest_head_shot"] = int(processed_data.get("longest_head_shot", 0))
 
     # 创建 PlayerStats 对象
-    player_stats = PlayerStats.from_dict(processed_data)
+    player_stats = PlayerStats.from_gt_dict(processed_data)
     
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"]))
 
@@ -121,7 +120,7 @@ def bf_main_html_builder(raw_data: dict, game: str) -> str:
     return html
 
 
-def bf_weapons_html_builder(raw_data: dict, game: str) -> str:
+def gt_weapons_html_builder(raw_data: dict, game: str) -> str:
     """
     构建武器html
     Args:
@@ -133,18 +132,18 @@ def bf_weapons_html_builder(raw_data: dict, game: str) -> str:
     banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER)
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
 
-    # 预处理原始数据，使其符合 PlayerStats.from_dict 的期望
+    # 预处理原始数据，使其符合 PlayerStats.from_gt_dict 的期望
     processed_data = raw_data.copy()
     if processed_data.get("avatar") is None:
         processed_data["avatar"] = ImageUrls.DEFAULT_AVATAR
     
-    # 计算 hoursPlayed 并添加到 processed_data，以便 PlayerStats.from_dict 使用
-    processed_data["__hoursPlayed"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
+    # 计算 hours_played 并添加到 processed_data，以便 PlayerStats.from_gt_dict 使用
+    processed_data["__hours_played"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
     processed_data["revives"] = int(processed_data.get("revives", 0))
-    processed_data["longestHeadShot"] = int(processed_data.get("longestHeadShot", 0))
+    processed_data["longest_head_shot"] = int(processed_data.get("longest_head_shot", 0))
 
     # 创建 PlayerStats 对象
-    player_stats = PlayerStats.from_dict(processed_data)
+    player_stats = PlayerStats.from_gt_dict(processed_data)
 
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"]))
 
@@ -166,7 +165,7 @@ def bf_weapons_html_builder(raw_data: dict, game: str) -> str:
     return html
 
 
-def bf_vehicles_html_builder(raw_data: dict, game: str) -> str:
+def gt_vehicles_html_builder(raw_data: dict, game: str) -> str:
     """
     构建载具html
     Args:
@@ -178,18 +177,18 @@ def bf_vehicles_html_builder(raw_data: dict, game: str) -> str:
     banner = GameMappings.BANNERS.get(game, ImageUrls.BFV_BANNER)
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
 
-    # 预处理原始数据，使其符合 PlayerStats.from_dict 的期望
+    # 预处理原始数据，使其符合 PlayerStats.from_gt_dict 的期望
     processed_data = raw_data.copy()
     if processed_data.get("avatar") is None:
         processed_data["avatar"] = ImageUrls.DEFAULT_AVATAR
     
-    # 计算 hoursPlayed 并添加到 processed_data，以便 PlayerStats.from_dict 使用
-    processed_data["__hoursPlayed"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
+    # 计算 hours_played 并添加到 processed_data，以便 PlayerStats.from_gt_dict 使用
+    processed_data["__hours_played"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
     processed_data["revives"] = int(processed_data.get("revives", 0))
-    processed_data["longestHeadShot"] = int(processed_data.get("longestHeadShot", 0))
+    processed_data["longest_head_shot"] = int(processed_data.get("longest_head_shot", 0))
 
     # 创建 PlayerStats 对象
-    player_stats = PlayerStats.from_dict(processed_data)
+    player_stats = PlayerStats.from_gt_dict(processed_data)
 
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"]))
 
@@ -211,7 +210,7 @@ def bf_vehicles_html_builder(raw_data: dict, game: str) -> str:
     return html
 
 
-def bf_servers_html_builder(servers_data, game):
+def gt_servers_html_builder(servers_data, game):
     """
     构建主要html
     Args:

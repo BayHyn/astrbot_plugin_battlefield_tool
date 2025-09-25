@@ -15,6 +15,7 @@ from utils.request_util import (gt_request_api, check_image_url_status, btr_requ
 from database.battlefield_database import BattleFieldDataBase
 from database.battlefield_db_service import BattleFieldDBService
 from utils.handlers import BattlefieldHandlers, PlayerDataRequest
+from utils.gt_template import gt_servers_html_builder
 
 import aiohttp
 
@@ -37,39 +38,45 @@ class BattlefieldTool(Star):
             self.default_game = "bfv"
             self.timeout_config = 15
             self.img_quality = 90
-            self.btr_token = ""
+            self.ssc_token = ""
         else:
             logger.debug("BattlefieldTool: 使用用户配置文件")
             self.default_game = config.get("default_game", "bfv")
             self.timeout_config = config.get("timeout_config", 15)
             self.img_quality = config.get("img_quality", 90)
-            self.btr_token = config.get("token", "")
+            self.ssc_token = config.get("ssc_token", "")
 
         self.bf_data_path = StarTools.get_data_dir("battleField_tool_plugin")
         self.db = BattleFieldDataBase(self.bf_data_path)  # 初始化数据库
         self.db_service = BattleFieldDBService(self.db)  # 初始化数据库服务
         self._session = None
-        self.default_platform = "pc" # 默认平台
-        self.handlers = BattlefieldHandlers(self.db_service, self.default_game, self.timeout_config, self.img_quality, self._session, self.default_platform)
+        self.default_platform = "pc"  # 默认平台
+        self.handlers = BattlefieldHandlers(self.db_service, self.default_game, self.timeout_config, self.img_quality,
+                                            self._session, self.default_platform)
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
         self._session = aiohttp.ClientSession()
         await self.db.initialize()  # 添加数据库初始化调用
-        self.handlers._session = self._session # 更新handlers中的session
+        self.handlers._session = self._session  # 更新handlers中的session
 
     @filter.command("stat")
     async def bf_stat(self, event: AstrMessageEvent):
         """查询用户数据"""
+
         request_data = await self.handlers._handle_player_data_request(event, ["stat"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
             return
-
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        async for result in self._fetch_and_process_data(event, request_data, "all", "stat"):
-            yield result
+
+        if request_data.game in ["bf2042", "bf6"]:
+            async for result in self._handle_btr_game(event, request_data,"stat"):
+                yield result
+        else:
+            async for result in self._fetch_gt_data(event, request_data, "stat", "all"):
+                yield result
 
     @filter.command("weapons", alias=["武器"])
     async def bf_weapons(self, event: AstrMessageEvent):
@@ -81,8 +88,13 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        async for result in self._fetch_and_process_data(event, request_data, "weapons", "weapons"):
-            yield result
+
+        if request_data.game in ["bf2042", "bf6"]:
+            async for result in self._handle_btr_game(event, request_data,"weapons"):
+                yield result
+        else:
+            async for result in self._fetch_gt_data(event, request_data, "weapons", "weapons"):
+                yield result
 
     @filter.command("vehicles", alias=["载具"])
     async def bf_vehicles(self, event: AstrMessageEvent):
@@ -94,24 +106,28 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        async for result in self._fetch_and_process_data(event, request_data, "vehicles", "vehicles"):
-            yield result
+        if request_data.game in ["bf2042", "bf6"]:
+            async for result in self._handle_btr_game(event, request_data,"vehicles"):
+                yield result
+        else:
+            async for result in self._fetch_gt_data(event, request_data, "vehicles", "vehicles"):
+                yield result
 
-    @filter.command("soldier", alias=["专家"])
+    @filter.command("soldiers", alias=["专家"])
     async def bf_soldier(self, event: AstrMessageEvent):
         """查询专家数据 (仅限bf2042)"""
-        request_data = await self.handlers._handle_player_data_request(event, ["soldier", "专家"])
+        request_data = await self.handlers._handle_player_data_request(event, ["soldiers", "专家"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
             return
-        
+
         if request_data.game != 'bf2042':
             yield event.plain_result("专家查询目前仅支持战地2042。")
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        async for result in self._fetch_and_process_data(event, request_data, "/player/soldier", "soldier"):
+        async for result in self._handle_btr_game(event, request_data,"soldiers"):
             yield result
 
     @filter.command("servers", alias=["服务器"])
@@ -122,8 +138,12 @@ class BattlefieldTool(Star):
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
             return
+
+        if request_data.game in ["bf2042", "bf6"]:
+            yield event.plain_result("暂不支持bf2042、bf6的服务器查询")
+
         if request_data.server_name is None:
-            yield event.plain_result("请提供服务器名称进行查询哦~") # 优化提示信息
+            yield event.plain_result("请提供服务器名称进行查询哦~")  # 优化提示信息
             return
 
         logger.info(f"查询服务器:{request_data.server_name}，所查询游戏:{request_data.game}")
@@ -152,7 +172,9 @@ class BattlefieldTool(Star):
 
         if servers_data["servers"] is not None and len(servers_data["servers"]) > 0:
             servers_data["__update_time"] = time.time()
-            pic_url = await self.handlers._servers_data_to_pic(servers_data, request_data.game, self.html_render)
+            pic_url = await self.handlers.image_generator.generate_servers_gt_data_pic(
+                servers_data, request_data.game, self.html_render, gt_servers_html_builder
+            )
             yield event.image_result(pic_url)
         else:
             yield event.plain_result("暂无数据")
@@ -187,50 +209,71 @@ class BattlefieldTool(Star):
             msg = await self.db_service.upsert_user_bind(request_data.qq_id, request_data.ea_name, ea_id)
             yield event.plain_result(msg)
 
-    async def _fetch_and_process_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, prop: str, data_type: str):
+    async def _process_api_response_and_yield(self, event: AstrMessageEvent, api_data, data_type: str, game: str):
         """
-        根据游戏类型获取数据并处理响应。
+        处理API响应并yield结果
         """
-        api_data = None
-        if request_data.game in ['bf6', 'bf2042']:
-            btr_prop_map = {
-                "stat": "/player/stat",
-                "weapons": "/player/weapons",
-                "vehicles": "/player/vehicles",
-                "soldier": "/player/soldier",
-            }
-            btr_prop = btr_prop_map.get(data_type)
-            if btr_prop is None:
-                yield event.plain_result(f"不支持的游戏类型 '{data_type}' 用于bf6/bf2042查询。")
-                return
-            
-            # 专家查询仅限bf2042
-            if data_type == "soldier" and request_data.game != "bf2042":
-                yield event.plain_result("专家查询目前仅支持战地2042。")
-                return
+        async for result in self.handlers._process_api_response(
+                event, api_data, data_type, game, self.html_render
+        ):
+            yield result
 
-            api_data = await btr_request_api(
-                btr_prop,
-                {"player_name": request_data.ea_name, "game": request_data.game},
-                self.timeout_config,
-                session=self._session,
-            )
-            async for result in self.handlers._handle_btr_response(event, api_data):
-                yield result
+    async def _process_btr_response_and_yield(self, event: AstrMessageEvent, data_type: str, game: str, 
+                                            stat_data, weapon_data, vehicle_data, soldier_data):
+        """
+        处理BTR响应并yield结果
+        """
+        async for result in self.handlers._handle_btr_response(
+                event, data_type, game, self.html_render, stat_data, weapon_data, vehicle_data, soldier_data
+        ):
+            yield result
+
+    async def _fetch_gt_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, data_type: str,
+                             prop: str = None):
+        """
+        根据游戏类型获取数据并处理响应 (非bf6/bf2042)。
+        """
+        api_data = await gt_request_api(
+            request_data.game,
+            prop,
+            {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
+            self.timeout_config,
+            session=self._session,
+        )
+
+        async for result in self._process_api_response_and_yield(
+                event, api_data, data_type, request_data.game
+        ):
+            yield result
+
+    async def _fetch_btr_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, data_type: str):
+        """
+        根据游戏类型获取数据并处理响应 (bf6/bf2042)。
+        """
+        btr_prop_map = {
+            "stat": "/player/stat",
+            "weapons": "/player/weapons",
+            "vehicles": "/player/vehicles",
+            "soldiers": "/player/soldier",
+        }
+        btr_prop = btr_prop_map.get(data_type)
+        if btr_prop is None:
+            yield event.plain_result(f"不支持的游戏类型 '{data_type}' 用于bf6/bf2042查询。")
             return
-        else:
-            api_data = await gt_request_api(
-                request_data.game,
-                prop,
-                {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
-                self.timeout_config,
-                session=self._session,
-            )
 
-            async for result in self.handlers._process_api_response(
-                event, api_data, data_type, request_data.game, self.html_render
-            ):
-                yield result
+        # 专家查询仅限bf2042
+        if data_type == "soldier" and request_data.game != "bf2042":
+            yield event.plain_result("专家查询目前仅支持战地2042。")
+            return
+
+        api_data = await btr_request_api(
+            btr_prop,
+            {"player_name": request_data.ea_name, "game": request_data.game},
+            self.timeout_config,
+            self.ssc_token,
+            session=self._session,
+        )
+        yield api_data
 
     @filter.command("bf_init")
     async def bf_init(self, event: AstrMessageEvent):
@@ -312,6 +355,31 @@ class BattlefieldTool(Star):
 注: 实际使用时不需要输入[]。{{唤醒词}}为唤醒词，以实际情况为准
 """
         yield event.plain_result(help_msg)
+
+    async def _handle_btr_game(self, event: AstrMessageEvent, request_data: PlayerDataRequest,prop):
+        """处理BTR游戏（bf2042, bf6）的统计数据查询"""
+        stat_data = None
+        async for data in self._fetch_btr_data(event, request_data, "stat"):
+            stat_data = data
+
+        weapon_data = None
+        if prop in ["stat","weapons"]:
+            async for data in self._fetch_btr_data(event, request_data, "weapons"):
+                weapon_data = data
+
+        vehicle_data = None
+        if prop in ["stat","vehicles"]:
+            async for data in self._fetch_btr_data(event, request_data, "vehicles"):
+                vehicle_data = data
+
+        soldier_data = None
+        if prop in ["stat","soldiers"]:
+            async for data in self._fetch_btr_data(event, request_data, "soldiers"):
+                soldier_data = data
+
+        async for result in self._process_btr_response_and_yield(event, prop, request_data.game,
+                stat_data, weapon_data, vehicle_data, soldier_data):
+            yield result
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件卸载/停用时会调用。"""

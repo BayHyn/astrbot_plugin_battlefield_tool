@@ -94,7 +94,7 @@ async def check_image_url_status(url: str) -> Optional[int]:
         return None
 
 
-async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int = 15, session: Optional[aiohttp.ClientSession] = None):
+async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int = 15,ssc_token= "", session: Optional[aiohttp.ClientSession] = None):
     """
     异步请求BTR API
         Args:
@@ -102,6 +102,7 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
         params: 查询参数
         timeout: 超时时间(秒)
         session: 可选的aiohttp.ClientSession实例
+        headers: 可选的请求头字典
     Returns:
         JSON响应数据
     Raises:
@@ -110,8 +111,13 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
     """
     if params is None:
         params = {}
+    if ssc_token == "":
+        headers={}
+    else:
+        headers = {"X-API-Key":ssc_token}
     url = BTR_API_SITE + prop
-    logger.info(f"Battlefield Tool Request API: {url}，请求参数: {params}")
+    has_token = "是" if ssc_token else "否"
+    logger.info(f"Battlefield Tool Request API: {url}，请求参数: {params}, 是否有ssc_token: {has_token}")
 
     should_close = session is None
     if should_close:
@@ -119,7 +125,7 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
 
     try:
         timeout_obj = aiohttp.ClientTimeout(total=timeout)
-        async with session.get(url, params=params, timeout=timeout_obj) as response:
+        async with session.get(url, params=params, timeout=timeout_obj, headers=headers) as response:
             if response.status == 200:
                 result = await response.json()
                 return result
