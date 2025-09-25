@@ -18,7 +18,7 @@ class ImageUrls:
     BF4_BANNER = "https://s21.ax1x.com/2025/07/16/pV1XV1S.jpg"
     BF1_BANNER = "https://s1.ax1x.com/2022/12/15/zoMaxe.jpg"
     BFV_BANNER = "https://s1.ax1x.com/2022/12/14/z54oIs.jpg"
-    BF2042_BANNER = "https://s1.ax1x.com/2023/01/24/pSYXS3Q.jpg"
+    BF2042_BANNER = "https://s21.ax1x.com/2025/09/25/pV5v1pV.jpg"
 
     # 默认头像
     DEFAULT_AVATAR = "https://s21.ax1x.com/2025/07/16/pV1Ox6e.jpg"
@@ -43,6 +43,7 @@ class ImageUrls:
             "bf4_banner": cls.BF4_BANNER,
             "bf1_banner": cls.BF1_BANNER,
             "bfv_banner": cls.BFV_BANNER,
+            "bf2042_banner": cls.BF2042_BANNER,
             "default_avatar": cls.DEFAULT_AVATAR,
             "su_50": cls.SU_50
         }
@@ -54,7 +55,7 @@ class BackgroundColors:
     BF4_BACKGROUND_COLOR = "#111B2B"
     BF1_BACKGROUND_COLOR = "rgb(139 81 41)"
     BFV_BACKGROUND_COLOR = "rgb(38 62 112)"
-    BF2042_BACKGROUND_COLOR = "#111B2B"
+    BF2042_BACKGROUND_COLOR = "rgb(1 79 101)"
 
 
 class GameMappings:
@@ -91,21 +92,38 @@ class TemplateConstants:
     PARENT_FOLDER = Path(__file__).parent.parent.resolve()
     
     @classmethod
-    def get_template_env(cls):
+    def get_gt_template_env(cls):
         """获取Jinja2模板环境"""
-        template_dir = cls.PARENT_FOLDER / "template"
+        template_dir = cls.PARENT_FOLDER / "template/gametool"
+        return Environment(loader=FileSystemLoader(template_dir))
+
+    @classmethod
+    def get_btr_template_env(cls):
+        """获取Jinja2模板环境"""
+        template_dir = cls.PARENT_FOLDER / "template/btr"
         return Environment(loader=FileSystemLoader(template_dir))
     
     @classmethod
     def get_templates(cls):
         """获取所有模板"""
-        env = cls.get_template_env()
+        gt_env = cls.get_gt_template_env()
+        btr_env = cls.get_btr_template_env()
         return {
-            "main": env.get_template("template.html"),
-            "weapons": env.get_template("template_weapons.html"),
-            "vehicles": env.get_template("template_vehicles.html"),
-            "servers": env.get_template("template_servers.html"),
-            "weapon_card": env.get_template("weapon_card.html"),
-            "vehicle_card": env.get_template("vehicle_card.html"),
-            "server_card": env.get_template("server_card.html"),
+            "gt_main": gt_env.get_template("template.html"),
+            "gt_weapons": gt_env.get_template("template_weapons.html"),
+            "gt_vehicles": gt_env.get_template("template_vehicles.html"),
+            "gt_servers": gt_env.get_template("template_servers.html"),
+            "gt_weapon_card": gt_env.get_template("weapon_card.html"),
+            "gt_vehicle_card": gt_env.get_template("vehicle_card.html"),
+            "gt_server_card": gt_env.get_template("server_card.html"),
+
+            "btr_main": btr_env.get_template("template.html"),
+            "btr_weapons": btr_env.get_template("template_weapons.html"),
+            "btr_vehicles": btr_env.get_template("template_vehicles.html"),
+            "btr_soldiers": btr_env.get_template("template_soldier.html"),
+            # "btr_servers": env.get_template("template_servers.html"),
+            "btr_weapon_card": btr_env.get_template("weapon_card.html"),
+            "btr_vehicle_card": btr_env.get_template("vehicle_card.html"),
+            "btr_soldier_card": btr_env.get_template("soldier_card.html"),
+            # "btr_server_card": env.get_template("/btr/server_card.html"),
         }
