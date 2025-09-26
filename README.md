@@ -1,7 +1,7 @@
 # astrbot_plugin_battlefield_tool
 
 # ✨Astrbot 战地风云战绩查询插件
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![AstrBot](https://img.shields.io/badge/AstrBot-3.4%2B-orange.svg)](https://github.com/Soulter/AstrBot)
 
@@ -101,4 +101,6 @@ astrbot自带的文转图可能不稳定， 如果条件允许建议自部署一
 5. **发起 PR** - 在 GitHub 上创建 Pull Request 到原仓库的 `main` 分支
 
 ## 📜 开源协议
-本项目采用 [MIT License](LICENSE)
+1.9.0已从 MIT 协议变更为 AGPL-3.0 协议。
+
+本项目采用 [GNU Affero General Public License v3.0](LICENSE)
