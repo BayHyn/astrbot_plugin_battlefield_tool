@@ -1,21 +1,16 @@
-import sys
-import os
 import time
 
-# 将插件的根目录添加到 Python 路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from astrbot.api.event import filter, AstrMessageEvent
 from astrbot.api.star import Context, Star, StarTools, register
 from astrbot.api.all import AstrBotConfig
 from astrbot.api import logger
 
-from typing import Union
-from utils.request_util import (gt_request_api, check_image_url_status, btr_request_api)
-from database.battlefield_database import BattleFieldDataBase
-from database.battlefield_db_service import BattleFieldDBService
-from utils.handlers import BattlefieldHandlers, PlayerDataRequest
-from utils.gt_template import gt_servers_html_builder
+from .utils.request_util import (gt_request_api, btr_request_api)
+from .database.battlefield_database import BattleFieldDataBase
+from .database.battlefield_db_service import BattleFieldDBService
+from .utils.handlers import BattlefieldHandlers, PlayerDataRequest
+from .utils.gt_template import gt_servers_html_builder
 
 import aiohttp
 
@@ -24,7 +19,7 @@ import aiohttp
     "astrbot_plugin_battlefield_tool",  # name
     "SHOOTING_STAR_C",  # author
     "战地风云战绩查询插件",  # desc
-    "v1.0.9",  # version
+    "v1.9.0",  # version
 )
 class BattlefieldTool(Star):
 
@@ -254,7 +249,7 @@ class BattlefieldTool(Star):
             "stat": "/player/stat",
             "weapons": "/player/weapons",
             "vehicles": "/player/vehicles",
-            "soldiers": "/player/soldier",
+            "soldiers": "/player/soldiers",
         }
         btr_prop = btr_prop_map.get(data_type)
         if btr_prop is None:
