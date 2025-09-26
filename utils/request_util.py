@@ -74,25 +74,6 @@ async def gt_request_api(game, prop="stats", params=None, timeout=15, session=No
             await session.close()
 
 
-async def check_image_url_status(url: str) -> Optional[int]:
-    """
-    异步检查图片URL状态码
-
-    Args:
-        url: 要检查的图片URL
-
-    Returns:
-        状态码(成功时)或None(失败时)
-    """
-    timeout = aiohttp.ClientTimeout(total=5)
-    try:
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(url) as response:
-                return response.status
-    except aiohttp.ClientError as e:
-        logger.error(f"请求图片URL时发生错误: {e}")
-        return None
-
 
 async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int = 15,ssc_token= "", session: Optional[aiohttp.ClientSession] = None):
     """
