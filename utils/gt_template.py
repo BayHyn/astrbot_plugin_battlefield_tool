@@ -1,6 +1,7 @@
 from astrbot.api import logger
-from constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
-from models.gt_entities import PlayerStats, Weapon, Vehicle # 导入实体类
+from ..constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
+from ..models.gt_entities import PlayerStats, Weapon, Vehicle # 导入实体类
+
 from typing import List
 
 import time
@@ -88,7 +89,7 @@ def gt_main_html_builder(raw_data: dict, game: str) -> str:
     # 预处理原始数据，使其符合 PlayerStats.from_gt_dict 的期望
     processed_data = raw_data.copy()
     if processed_data.get("avatar") is None:
-        processed_data["avatar"] = ImageUrls.DEFAULT_AVATAR
+        processed_data["avatar"] = ImageUrls().DEFAULT_AVATAR
 
     processed_data["__hours_played"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
     processed_data["revives"] = int(processed_data.get("revives", 0))
@@ -135,7 +136,7 @@ def gt_weapons_html_builder(raw_data: dict, game: str) -> str:
     # 预处理原始数据，使其符合 PlayerStats.from_gt_dict 的期望
     processed_data = raw_data.copy()
     if processed_data.get("avatar") is None:
-        processed_data["avatar"] = ImageUrls.DEFAULT_AVATAR
+        processed_data["avatar"] = ImageUrls().DEFAULT_AVATAR
     
     # 计算 hours_played 并添加到 processed_data，以便 PlayerStats.from_gt_dict 使用
     processed_data["__hours_played"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))
@@ -180,7 +181,7 @@ def gt_vehicles_html_builder(raw_data: dict, game: str) -> str:
     # 预处理原始数据，使其符合 PlayerStats.from_gt_dict 的期望
     processed_data = raw_data.copy()
     if processed_data.get("avatar") is None:
-        processed_data["avatar"] = ImageUrls.DEFAULT_AVATAR
+        processed_data["avatar"] = ImageUrls().DEFAULT_AVATAR
     
     # 计算 hours_played 并添加到 processed_data，以便 PlayerStats.from_gt_dict 使用
     processed_data["__hours_played"] = str(round(processed_data.get("secondsPlayed", 0) / 3600, 1))

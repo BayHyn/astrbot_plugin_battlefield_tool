@@ -1,7 +1,6 @@
 from astrbot.api import logger
-from constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
-from models.btr_entities import PlayerStats, Weapon, Vehicle, Soldier  # 导入实体类
-from typing import List
+from ..constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
+from ..models.btr_entities import PlayerStats, Weapon, Vehicle, Soldier  # 导入实体类
 
 import time
 
@@ -51,7 +50,8 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
 
     # 创建对象
     stat_entity = PlayerStats.from_btr_dict(stat_data)
-    stat_entity.avatar = ImageUrls.DEFAULT_AVATAR
+    stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
+    logger.info(f"Default avatar URL: {stat_entity.avatar}")
 
     weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
     vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
@@ -93,7 +93,8 @@ def btr_weapons_html_builder(stat_data: dict, weapons_data,vehicles_data, soldie
 
     # 创建对象
     stat_entity = PlayerStats.from_btr_dict(stat_data)
-    stat_entity.avatar = ImageUrls.DEFAULT_AVATAR
+    stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
+    logger.info(f"Default avatar URL: {stat_entity.avatar}")
 
     weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
 
@@ -129,7 +130,8 @@ def btr_vehicles_html_builder(stat_data: dict,weapons_data, vehicles_data,soldie
 
     # 创建对象
     stat_entity = PlayerStats.from_btr_dict(stat_data)
-    stat_entity.avatar = ImageUrls.DEFAULT_AVATAR
+    stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
+    logger.info(f"Default avatar URL: {stat_entity.avatar}")
 
     vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
 
@@ -165,7 +167,8 @@ def btr_soldier_html_builder(stat_data: dict,weapons_data, vehicles_data, soldie
 
     # 创建对象
     stat_entity = PlayerStats.from_btr_dict(stat_data)
-    stat_entity.avatar = ImageUrls.DEFAULT_AVATAR
+    stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
+    logger.info(f"Default avatar URL: {stat_entity.avatar}")
 
     soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
 
