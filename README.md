@@ -11,12 +11,16 @@
 - 武器/载具统计
 - 服务器查询
 
+## ✨ update 更新 
+1.9.0：可查询bf2042
+
 
 ## 🎮 支持游戏
 
 - ✅ **战地4** (Battlefield 4)
 - ✅ **战地1** (Battlefield 1)
 - ✅ **战地5** (Battlefield V)
+- ✅ **战地2042** (Battlefield 2042)
 
 ## ⌨️ 使用命令
 
@@ -35,6 +39,7 @@
 - `bf4`: 战地风云4
 - `bf1`: 战地风云1
 - `bfv`: 战地风云5
+- `bf2042`: 战地风云2042
 
 **命令示例**
 - `全参`:/stat shooting_star_c,game=bf4
@@ -45,15 +50,17 @@
 ## 🌟 功能预览
 
 <div>
-  <img src="https://s21.ax1x.com/2025/07/19/pV3xLwQ.jpg" width="30%" alt="bfv战绩查询效果"/>
-  <img src="https://s21.ax1x.com/2025/07/19/pV3xjFs.jpg" width="30%" alt="bf1战绩查询效果"/>
+  <img src="./README/image/示例_bf4.jpg" width="20%" alt="bf4战绩查询效果"/>
+  <img src="./README/image/示例_bf1.jpg" width="20%" alt="bf1战绩查询效果"/>
+  <img src="./README/image/示例_bfv.jpg" width="20%" alt="bfv战绩查询效果"/>
+  <img src="./README/image/示例_bf2042.jpg" width="20%" alt="bf2042战绩查询效果"/>
 </div>
 
 ## 📌 注意事项
 
-html转图服务能力来自[CampuxUtility](https://github.com/idoknow/CampuxUtility)  
-
+- html转图服务能力来自[CampuxUtility](https://github.com/idoknow/CampuxUtility)  
 astrbot自带的文转图可能不稳定， 如果条件允许建议自部署一个，详见[Astrbot文档](https://astrbot.app/)的其他章节
+- bf2042-api 如果没有token则限制每分钟访问10次，有需求请加群联系我
 
 ## 👍致谢
 ### 🎮 数据服务
