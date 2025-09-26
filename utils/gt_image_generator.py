@@ -1,5 +1,4 @@
 from typing import Dict, Any, Callable
-import time
 
 # 定义图片裁剪的通用参数
 COMMON_CLIP_PARAMS = {"x": 0, "y": 0, "width": 700}

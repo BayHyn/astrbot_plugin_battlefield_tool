@@ -2,23 +2,23 @@ from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
 from typing import Union, Pattern
-from database.battlefield_db_service import (
+from ..database.battlefield_db_service import (
     BattleFieldDBService,
 )
-from utils.gt_template import (
+from ..utils.gt_template import (
     gt_main_html_builder,
     gt_weapons_html_builder,
     gt_vehicles_html_builder,
     gt_servers_html_builder,
 )
-from utils.btr_template import (
+from ..utils.btr_template import (
     btr_main_html_builder,
     btr_weapons_html_builder,
     btr_vehicles_html_builder,
     btr_soldier_html_builder,
 )
-from utils.gt_image_generator import GtImageGenerator
-from utils.btr_image_generator import BtrImageGenerator
+from ..utils.gt_image_generator import GtImageGenerator
+from ..utils.btr_image_generator import BtrImageGenerator
 
 from dataclasses import dataclass
 
