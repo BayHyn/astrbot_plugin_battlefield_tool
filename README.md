@@ -5,7 +5,7 @@
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![AstrBot](https://img.shields.io/badge/AstrBot-3.4%2B-orange.svg)](https://github.com/Soulter/AstrBot)
 
-一个基于 Astrbot 的战地系列游戏(BF1/BF4/BF5)战绩统计查询插件，支持：
+一个基于 Astrbot 的战地系列游戏(BF1/BF4/BF5/BF2042)战绩统计查询插件，支持：
 
 - 玩家战绩查询
 - 武器/载具统计
@@ -24,15 +24,16 @@
 
 ## ⌨️ 使用命令
 
-| 功能        | 命令格式                                     | 参数说明                                | 备注           | 别名 |
-|-----------|------------------------------------------|-------------------------------------|--------------|--|
-| **账号绑定**  | `{唤醒词}bind [ea_name]`                    | `ea_name`: EA账号名                    |          -    | `/绑定` |
-| **默认查询**  | `{唤醒词}bf_init [游戏代号]`                    | 游戏代号                                | 群聊中仅bot管理员可用 | - |
-| **查询战绩**  | `{唤醒词}stat [ea_name],game=[游戏代号]`        | `ea_name`: EA账号名<br>`game`: 游戏代号    |          -    | - |
-| **武器统计**  | `{唤醒词}weapons [ea_name],game=[游戏代号]`     | `ea_name`: EA账号名<br>`game`: 游戏代号    |          -    | `/武器` |
-| **载具统计**  | `{唤醒词}vehicles [ea_name],game=[游戏代号]`    | `ea_name`: EA账号名<br>`game`: 游戏代号    |           -   | `/载具` |
-| **服务器查询** | `{唤醒词}servers [server_name],game=[游戏代号]` | `server_name`: 服务器名<br>`game`: 游戏代号 |       -       | `/服务器` |
-| **帮助**    | `{唤醒词}bf_help`                           | -                                   |       -       | - |
+| 功能        | 命令格式                                     | 参数说明                                | 备注                 | 别名     |
+|-----------|------------------------------------------|-------------------------------------|--------------------|--------|
+| **账号绑定**  | `{唤醒词}bind [ea_name]`                    | `ea_name`: EA账号名                    | -                  | `/绑定`  |
+| **默认查询**  | `{唤醒词}bf_init [游戏代号]`                    | 游戏代号                                | 群聊中仅bot管理员可用       | -      |
+| **查询战绩**  | `{唤醒词}stat [ea_name],game=[游戏代号]`        | `ea_name`: EA账号名<br>`game`: 游戏代号    | -                  | -      |
+| **武器统计**  | `{唤醒词}weapons [ea_name],game=[游戏代号]`     | `ea_name`: EA账号名<br>`game`: 游戏代号    | -                  | `/武器`  |
+| **载具统计**  | `{唤醒词}vehicles [ea_name],game=[游戏代号]`    | `ea_name`: EA账号名<br>`game`: 游戏代号    | -                  | `/载具`  |
+| **专家统计**  | `{唤醒词}soldiers [ea_name],game=bf2042`    | `ea_name`: EA账号名<br>`game`: bf2042  | 仅支持bf2042          | `/专家`  |
+| **服务器查询** | `{唤醒词}servers [server_name],game=[游戏代号]` | `server_name`: 服务器名<br>`game`: 游戏代号 | -                  | `/服务器` |
+| **帮助**    | `{唤醒词}bf_help`                           | -                                   | -                  | -      |
 💡 提示
 
 **游戏代号对照表**:
@@ -74,6 +75,7 @@ astrbot自带的文转图可能不稳定， 如果条件允许建议自部署一
 
 ### 🥰 特别感谢 
 - [@EIA2024](https://github.com/EIA2024) 的贡献！
+- [@chawu691](https://github.com/chawu691) 的贡献！
 
 🙌 衷心感谢所有使用者和贡献者的支持！您的反馈和建议是我们持续改进的动力！
 
