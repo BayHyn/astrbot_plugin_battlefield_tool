@@ -41,15 +41,14 @@
     } %}
     {% set current_bg_opacity_class = bg_opacity_map.get(game, 'bg-opacity-10') %}
 
-    <div class="bg-cover" style="background-image: url('{{ banner }}');">
-        <div style="margin-left:40px;padding-top: 60px;padding-bottom: 20px; margin-right: 350px;"
-            class="flex flex-col flex-nowarp justify-center items-center">
+    <div class="bg-cover" style="background-image: url('{{ banner }}'); height: 260px;">
+        <div class="absolute inset-0 bg-gradient-to-b from-dynamicBg/0 via-dynamicBg/10 to-dynamicBg/40"></div>
+    <div class="relative z-10 flex flex-col items-center justify-center h-full">
             <img src="{{ logo }}" alt="logo" class="rounded-lg" style="width:  280px;" />
             <div class="font-bold text-3xl">服务器列表</div>
         </div>
-        <div class="bg-gradient-to-b from-transparent to-dynamicBg" style="padding: 3%;"> &nbsp;</div>
     </div>
-    <div class="flex flex-col gap-4 mx-5"">
+    <div class="flex flex-col gap-4 mx-5" style="margin-top: 1rem;">
         {% from "server_card.html" import server_card %}
         {% if servers_data is not none %}
         {% for server in servers_data %}
