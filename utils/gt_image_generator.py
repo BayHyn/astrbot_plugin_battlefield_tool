@@ -1,7 +1,7 @@
 from typing import Dict, Any, Callable
 
 # 定义图片裁剪的通用参数
-COMMON_CLIP_PARAMS = {"x": 0, "y": 0, "width": 700}
+from ..constants.battlefield_constants import ImageUrls
 
 
 class GtImageGenerator:
@@ -34,7 +34,7 @@ class GtImageGenerator:
             {
                 "timeout": 10000,
                 "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": 2353},
+                "clip": {**ImageUrls.COMMON_CLIP_PARAMS, "height": 2353},
             },
         )
         return url
@@ -58,7 +58,7 @@ class GtImageGenerator:
             {
                 "timeout": 10000,
                 "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": 10000},
+                "clip": {**ImageUrls.COMMON_CLIP_PARAMS, "height": 10000},
             },
         )
         return url
@@ -82,7 +82,7 @@ class GtImageGenerator:
             {
                 "timeout": 10000,
                 "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": 10000},
+                "clip": {**ImageUrls.COMMON_CLIP_PARAMS, "height": 10000},
             },
         )
         return url
@@ -113,7 +113,7 @@ class GtImageGenerator:
             {
                 "timeout": 10000,
                 "quality": self.img_quality,
-                "clip": {**COMMON_CLIP_PARAMS, "height": height},
+                "clip": {**ImageUrls.COMMON_CLIP_PARAMS, "height": height},
             },
         )
         return url

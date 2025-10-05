@@ -735,6 +735,9 @@ class ImageUrls:
         "http://tutu.shooting-star-c.top/i/2025/09/26/lxhh9l.png"
     ]
 
+    # 定义图片裁剪的通用参数
+    COMMON_CLIP_PARAMS = {"x": 0, "y": 0, "width": 700}
+
     @property
     def DEFAULT_AVATAR(self):
         return random.choice(self._DEFAULT_AVATAR_URLS)
