@@ -1,6 +1,6 @@
 # 工具模块
 __all__ = [
-    'handlers',
+    'plugin_logic',
     'request_util',
     'gt_template',
     'btr_template',
