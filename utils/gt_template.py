@@ -1,8 +1,8 @@
 from astrbot.api import logger
 from ..constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
-from ..models.gt_entities import PlayerStats, Weapon, Vehicle # 导入实体类
+from ..models.gt_entities import PlayerStats, Weapon, Vehicle, Server # 导入实体类
 
-from typing import List
+from typing import List, Dict, Any
 
 import time
 
@@ -211,11 +211,11 @@ def gt_vehicles_html_builder(raw_data: dict, game: str) -> str:
     return html
 
 
-def gt_servers_html_builder(servers_data, game):
+def gt_servers_html_builder(raw_data: Dict[str, Any], game: str) -> str:
     """
-    构建主要html
+    构建服务器html
     Args:
-        servers_data: 查询到的数据
+        raw_data: 查询到的原始数据字典
         game: 所查询的游戏
     Returns:
         构建的Html
@@ -224,14 +224,18 @@ def gt_servers_html_builder(servers_data, game):
     logo = GameMappings.LOGOS.get(game, ImageUrls.BF3_LOGO)
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF3_BACKGROUND_COLOR)
     update_time = time.strftime(
-        "%Y-%m-%d %H:%M:%S", time.localtime(servers_data["__update_time"])
+        "%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"])
     )
+
+    servers_list_raw = raw_data.get("servers", [])
+    servers_objects = [Server.from_dict(s_data) for s_data in servers_list_raw]
+    servers_data_dicts = [s.to_dict() for s in servers_objects] if servers_objects else None
 
     html = SERVERS_TEMPLATE.render(
         banner=banner,
         logo=logo,
         update_time=update_time,
-        servers_data=servers_data["servers"] if servers_data else None,
+        servers_data=servers_data_dicts,
         game=game,
         background_color=background_color,
     )
