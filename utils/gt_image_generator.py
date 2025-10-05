@@ -101,9 +101,9 @@ class GtImageGenerator:
         # 数据量较少时设置高度
         height = 10000
         if data["servers"] is not None and len(data["servers"]) == 1:
-            height = 450
+            height = 500
         elif data["servers"] is not None and len(data["servers"]) == 2:
-            height = 620
+            height = 670
             
         html = html_builder_func(data, game)
         url = await html_render_func(
