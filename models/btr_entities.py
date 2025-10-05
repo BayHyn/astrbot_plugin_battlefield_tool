@@ -30,7 +30,7 @@ class PlayerStats:
                  losses: str,  # 失败场次
                  damage_dealt: str,  # 伤害
                  damage_per_match: str,  # 场均伤害
-                 revives: str,  # 急救数
+                 revives: str,  # 急救
                  vehicles_destroyed: str  # 载具破坏
                  ):
         self.avatar = avatar
@@ -182,19 +182,15 @@ class Weapon:
 
     @staticmethod
     def _get_category(category_name):
-        if category_name == "LMG":
-            return "机枪"
-        if category_name == "Assault Rifles":
-            return "突击步枪"
-        if category_name == "PDW":
-            return "冲锋枪"
-        if category_name == "DMR":
-            return "精确射手步枪"
-        if category_name == "Bolt Action":
-            return "狙击步枪"
-        if category_name == "Lever-Action Carbines":
-            return "多功能"
-        return category_name  # 添加一个默认返回值，以防没有匹配的类别
+        category_map = {
+            "LMG": "机枪",
+            "Assault Rifles": "突击步枪",
+            "PDW": "冲锋枪",
+            "DMR": "精确射手步枪",
+            "Bolt Action": "狙击步枪",
+            "Lever-Action Carbines": "多功能",
+        }
+        return category_map.get(category_name, category_name)
 
     def to_dict(self) -> Dict[str, Any]:
         """将 Weapon 实例转换为字典"""
@@ -288,65 +284,42 @@ class Vehicle:
 
     @staticmethod
     def _get_category(category_name):
-        if category_name == "Land":
-            return "地载"
-        if category_name == "Amphibious":
-            return "两栖载具"
-        if category_name == "In-World":
-            return "地图载具"
-        if category_name == "Plane":
-            return "空载"
-        if category_name == "Helicopter":
-            return "旋翼"
-        if category_name == "Stationary":
-            return "定点武器"
-        return category_name
+        category_map = {
+            "Land": "地载",
+            "Amphibious": "两栖载具",
+            "In-World": "地图载具",
+            "Plane": "空载",
+            "Helicopter": "旋翼",
+            "Stationary": "定点武器",
+        }
+        return category_map.get(category_name, category_name)
 
     @staticmethod
     def _get_vehicle_category(name):
-        if name == "LATV4 Recon ":
-            return "轻型侦察车"
-        if name == "M5C  ":
-            return "博尔特"
-        if name == "EBAA Wildcat ":
-            return "小野猫 "
-        if name == "LCAA Hovercraft":
-            return "气垫船"
-        if name == "MAV ":
-            return "MAV"
-        if name == "F-35E Panther ":
-            return "F-35E"
-        if name == "SU-57 FELON":
-            return "SU-57"
-        if name == "MV38-Condor":
-            return "秃鹰"
-        if name == "MD540 Nightbird ":
-            return "夜莺"
-        if name == "AH-64GX Apache Warchief":
-            return "阿帕奇"
-        if name == "KA-52 Alligator":
-            return "KA-52"
-        if name == "Mi-240 Super Hind ":
-            return "超级雌鹿"
-        if name == "M10 Wolverine":
-            return "狼獾"
-        if name == "M4 Sherman":
-            return "谢尔曼"
-        if name == "9K22 Tunguska-M":
-            return "通古斯卡"
-        if name == "M1161 ITV":
-            return "咆哮者"
-        if name == "Mi-28 Havoc":
-            return "Mi-28"
-        if name == "Centurion C-RAM":
-            return "百夫长"
-        if name == "RAH-68 Huron":
-            return "肖肖尼"
-        if name == "YG-99 Hannibal":
-            return "汉尼拔"
-        if name == "SU-70":
-            return "德鲁格"
-        return name
+        category_map = {
+            "LATV4 Recon ": "轻型侦察车",
+            "M5C  ": "博尔特",
+            "EBAA Wildcat ": "小野猫 ",
+            "LCAA Hovercraft": "气垫船",
+            "MAV ": "MAV",
+            "F-35E Panther ": "F-35E",
+            "SU-57 FELON": "SU-57",
+            "MV38-Condor": "秃鹰",
+            "MD540 Nightbird ": "夜莺",
+            "AH-64GX Apache Warchief": "阿帕奇",
+            "KA-52 Alligator": "KA-52",
+            "Mi-240 Super Hind ": "超级雌鹿",
+            "M10 Wolverine": "狼獾",
+            "M4 Sherman": "谢尔曼",
+            "9K22 Tunguska-M": "通古斯卡",
+            "M1161 ITV": "咆哮者",
+            "Mi-28 Havoc": "Mi-28",
+            "Centurion C-RAM": "百夫长",
+            "RAH-68 Huron": "肖肖尼",
+            "YG-99 Hannibal": "汉尼拔",
+            "SU-70": "德鲁格",
+        }
+        return category_map.get(name, name)
 
     def to_dict(self) -> Dict[str, Any]:
         """将 Vehicle 实例转换为字典"""
@@ -422,49 +395,32 @@ class Soldier:
 
     @staticmethod
     def _get_category(category_name):
-        if category_name == "Assault":
-            return "突击"
-        if category_name == "Engineer":
-            return "工程"
-        if category_name == "Support":
-            return "支援"
-        if category_name == "Recon":
-            return "侦察"
-        return category_name
+        category_map = {
+            "Assault": "突击",
+            "Engineer": "工程",
+            "Support": "支援",
+            "Recon": "侦察",
+        }
+        return category_map.get(category_name, category_name)
 
     @staticmethod
     def _get_soldier_name(name):
-        if name == "Mackay ":
-            return "麦凯"
-        if name == "Sundance ":
-            return "日舞"
-        if name == "Irish ":
-            return "爱尔兰佬"
-        if name == "Casper ":
-            return "卡斯帕"
-        if name == "Rao ":
-            return "拉奥"
-        if name == "Dozer ":
-            return "推土机"
-        if name == "Dozer ":
-            return "推土机"
-        if name == "Boris ":
-            return "鲍里斯"
-        if name == "Paik ":
-            return "智秀"
-        if name == "Paik ":
-            return "智秀"
-        if name == "Lis":
-            return "莉斯"
-        if name == "Crawford":
-            return "克劳福德"
-        if name == "Zain":
-            return "扎因"
-        if name == "Blasco":
-            return "布拉斯科"
-        if name == "Falck ":
-            return "法尔克"
-        return name
+        soldier_map = {
+            "Mackay ": "麦凯",
+            "Sundance ": "日舞",
+            "Irish ": "爱尔兰佬",
+            "Casper ": "卡斯帕",
+            "Rao ": "拉奥",
+            "Dozer ": "推土机",
+            "Boris ": "鲍里斯",
+            "Paik ": "智秀",
+            "Lis": "莉斯",
+            "Crawford": "克劳福德",
+            "Zain": "扎因",
+            "Blasco": "布拉斯科",
+            "Falck ": "法尔克",
+        }
+        return soldier_map.get(name, name)
 
     def to_dict(self) -> Dict[str, Any]:
         """将 Soldier 实例转换为字典"""
