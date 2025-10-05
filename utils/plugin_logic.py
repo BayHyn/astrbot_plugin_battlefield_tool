@@ -20,27 +20,13 @@ from ..utils.btr_template import (
 from ..utils.gt_image_generator import GtImageGenerator
 from ..utils.btr_image_generator import BtrImageGenerator
 
-from dataclasses import dataclass
+from ..models.player_data import PlayerDataRequest
 
 import re
 import time
 
-# 定义图片裁剪的通用参数
-COMMON_CLIP_PARAMS = {"x": 0, "y": 0, "width": 700}
 
-
-@dataclass
-class PlayerDataRequest:
-    message_str: str
-    lang: str
-    qq_id: str
-    ea_name: Union[str, None]
-    game: Union[str, None]
-    server_name: Union[str, None]
-    error_msg: Union[str, None]
-
-
-class BattlefieldHandlers:
+class BattlefieldPluginLogic:
     def __init__(self, db_service: BattleFieldDBService, default_game: str, timeout_config: int, img_quality: int,
                  session, default_platform: str = "pc"):
         self.db_service = db_service
