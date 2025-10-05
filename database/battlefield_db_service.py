@@ -22,9 +22,9 @@ class BattleFieldDBService:
             (qq_id, ea_name, ea_id),
         )
         return (
-            f"更新绑定数据: {old_data['ea_name']}-->{ea_name}"
+            f"更新绑定数据: {old_data['ea_name']}-->{ea_name}，ps:本插件不做用户名校验请务必确认是否正确"
             if old_data
-            else f"成功绑定EA_NAME：{ea_name}"
+            else f"成功绑定EA_NAME：{ea_name}，ps:本插件不做用户名校验请务必确认EA用户名是否正确"
         )
 
     async def upsert_session_channel(
