@@ -42,23 +42,24 @@ class BattlefieldTool(Star):
         self.db_service = BattleFieldDBService(self.db)  # 初始化数据库服务
         self._session = None
         self.default_platform = "pc"  # 默认平台
-        self.handlers = BattlefieldPluginLogic(self.db_service, self.default_game, self.timeout_config, self.img_quality,
-                                            self._session, self.default_platform)
-        self.api_handlers = ApiHandlers(self.handlers, self.html_render, self.timeout_config, self.ssc_token,
+        self.plugin_logic = BattlefieldPluginLogic(self.db_service, self.default_game, self.timeout_config,
+                                               self.img_quality,
+                                               self._session, self.default_platform)
+        self.api_handlers = ApiHandlers(self.plugin_logic, self.html_render, self.timeout_config, self.ssc_token,
                                         self._session)
 
     async def initialize(self):
         """可选择实现异步的插件初始化方法，当实例化该插件类之后会自动调用该方法。"""
         self._session = aiohttp.ClientSession()
         await self.db.initialize()  # 添加数据库初始化调用
-        self.handlers._session = self._session  # 更新handlers中的session
-        self.api_handlers._session = self._session # 更新api_handlers中的session
+        self.plugin_logic._session = self._session  # 更新handlers中的session
+        self.api_handlers._session = self._session  # 更新api_handlers中的session
 
     @filter.command("stat")
     async def bf_stat(self, event: AstrMessageEvent):
         """查询用户数据"""
 
-        request_data = await self.handlers._handle_player_data_request(event, ["stat"])
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["stat"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
@@ -66,16 +67,16 @@ class BattlefieldTool(Star):
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
 
         if request_data.game in ["bf2042", "bf6"]:
-            async for result in self.api_handlers._handle_btr_game(event, request_data,"stat"):
+            async for result in self.api_handlers.handle_btr_game(event, request_data, "stat"):
                 yield result
         else:
-            async for result in self.api_handlers._fetch_gt_data(event, request_data, "stat", "all"):
+            async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all"):
                 yield result
 
     @filter.command("weapons", alias=["武器"])
     async def bf_weapons(self, event: AstrMessageEvent):
         """查询用户武器数据"""
-        request_data = await self.handlers._handle_player_data_request(event, ["weapons", "武器"])
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["weapons", "武器"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
@@ -84,16 +85,16 @@ class BattlefieldTool(Star):
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
 
         if request_data.game in ["bf2042", "bf6"]:
-            async for result in self.api_handlers._handle_btr_game(event, request_data,"weapons"):
+            async for result in self.api_handlers.handle_btr_game(event, request_data, "weapons"):
                 yield result
         else:
-            async for result in self.api_handlers._fetch_gt_data(event, request_data, "weapons", "weapons"):
+            async for result in self.api_handlers.fetch_gt_data(event, request_data, "weapons", "weapons"):
                 yield result
 
     @filter.command("vehicles", alias=["载具"])
     async def bf_vehicles(self, event: AstrMessageEvent):
         """查询载具数据"""
-        request_data = await self.handlers._handle_player_data_request(event, ["vehicles", "载具"])
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["vehicles", "载具"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
@@ -101,16 +102,16 @@ class BattlefieldTool(Star):
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
         if request_data.game in ["bf2042", "bf6"]:
-            async for result in self.api_handlers._handle_btr_game(event, request_data,"vehicles"):
+            async for result in self.api_handlers.handle_btr_game(event, request_data, "vehicles"):
                 yield result
         else:
-            async for result in self.api_handlers._fetch_gt_data(event, request_data, "vehicles", "vehicles"):
+            async for result in self.api_handlers.fetch_gt_data(event, request_data, "vehicles", "vehicles"):
                 yield result
 
     @filter.command("soldiers", alias=["专家"])
     async def bf_soldier(self, event: AstrMessageEvent):
         """查询专家数据 (仅限bf2042)"""
-        request_data = await self.handlers._handle_player_data_request(event, ["soldiers", "专家"])
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["soldiers", "专家"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
@@ -121,13 +122,13 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
-        async for result in self.api_handlers._handle_btr_game(event, request_data,"soldiers"):
+        async for result in self.api_handlers.handle_btr_game(event, request_data, "soldiers"):
             yield result
 
     @filter.command("servers", alias=["服务器"])
     async def bf_servers(self, event: AstrMessageEvent):
         """查询服务器数据"""
-        request_data = await self.handlers._handle_player_data_request(event, ["servers", "服务器"])
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["servers", "服务器"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
@@ -142,11 +143,11 @@ class BattlefieldTool(Star):
             return
 
         logger.info(f"查询服务器:{request_data.server_name}，所查询游戏:{request_data.game}")
-        servers_data = await self.api_handlers._fetch_gt_servers_data(
+        servers_data = await self.api_handlers.fetch_gt_servers_data(
             request_data, self.timeout_config, self._session
         )
 
-        async for result in self.handlers._process_api_response(
+        async for result in self.plugin_logic.process_api_response(
                 event, servers_data, "servers", request_data.game, self.html_render
         ):
             yield result
@@ -154,7 +155,7 @@ class BattlefieldTool(Star):
     @filter.command("bind", alias=["绑定"])
     async def bf_bind(self, event: AstrMessageEvent):
         """绑定本插件默认查询的用户"""
-        request_data = await self.handlers._handle_player_data_request(event, ["bind", "绑定"])
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["bind", "绑定"])
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
             return
@@ -162,11 +163,45 @@ class BattlefieldTool(Star):
         msg = await self.db_service.upsert_user_bind(request_data.qq_id, request_data.ea_name, "")
         yield event.plain_result(msg)
 
+    @filter.llm_tool(name="bf_tool_bind")
+    async def bf_tool_bind(self, event: AstrMessageEvent, ea_name: str, user_id: str = None):
+        """
+            用户绑定默认查询的EA账户名
+            Args:
+                ea_name (string): 绑定的账户名，必填
+                user_id (string): 用户帮别人绑定的用户id
+        """
+        if not user_id:
+            # 获取用户
+            user_id = event.get_sender_id()
+        return await self.db_service.upsert_user_bind(user_id, ea_name, "")
+
+    @filter.llm_tool(name="bf_tool_stat")
+    async def bf_tool_stat(self, event: AstrMessageEvent, ea_name: str= None,user_id:str=None, game: str= None):
+        """
+            战地风云系列查询战绩
+            Args:
+                ea_name (string): 指定查询账户名，用户没有指定则填None
+                user_id (string): 用户查询别人战绩时填写的id，用户没有指定则填None
+                game (string):  游戏代号(可选bf4、bf1、bfv、bf2042、bf6)，用户没有指定则填None
+        """
+        request_data = await self.plugin_logic.handle_player_llm_request(ea_name,user_id, game)
+        if request_data.error_msg:
+            yield event.plain_result(request_data.error_msg)
+            return
+        logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
+        if request_data.game in ["bf2042", "bf6"]:
+            async for result in self.api_handlers.handle_btr_game(event, request_data, "stat"):
+                yield result
+        else:
+            async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all"):
+                yield result
+
     @filter.command("bf_init")
     async def bf_init(self, event: AstrMessageEvent):
         """同一机器人不同会话渠道配置不同的默认查询"""
         message_str = event.message_str
-        session_channel_id = self.handlers._get_session_channel_id(event)
+        session_channel_id = self.plugin_logic.get_session_channel_id(event)
 
         if not event.is_private_chat():
             # 群聊只能机器人管理员设置渠道绑定命令
@@ -205,7 +240,7 @@ class BattlefieldTool(Star):
 
 2. 默认查询设置
 命令: {{唤醒词}}bf_init [游戏代号]
-参数: 游戏代号 {", ".join(self.handlers.SUPPORTED_GAMES)}
+参数: 游戏代号 {", ".join(self.plugin_logic.SUPPORTED_GAMES)}
 注意: 私聊都能使用，群聊中仅bot管理员可用
 
 3. 战绩查询
@@ -242,7 +277,6 @@ class BattlefieldTool(Star):
 注: 实际使用时不需要输入[]。{{唤醒词}}为唤醒词，以实际情况为准
 """
         yield event.plain_result(help_msg)
-
 
     async def terminate(self):
         """可选择实现异步的插件销毁方法，当插件卸载/停用时会调用。"""
