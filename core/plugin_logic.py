@@ -229,7 +229,7 @@ class BattlefieldPluginLogic:
             user_id = user_id if user_id else event.get_sender_id()
             bind_data = await self.db_service.query_bind_user(user_id)
             if bind_data is None:
-                error_msg = f"没有找到{user_id}绑定的账户，请让用户先使用bind [ea_name]绑定或让用户告诉你信息你帮他绑定"
+                error_msg = f"根据以下信息回复用户结合你的人格设定，保证上下问不冲突，没有找到{user_id}绑定的账户，请让用户先使用bind [ea_name]绑定或让用户告诉你信息你帮他绑定"
             else:
                 ea_name_temp = bind_data["ea_name"]
         # 处理游戏代号
