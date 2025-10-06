@@ -1,6 +1,6 @@
 from typing import Dict, Any, Callable
 
-from ..constants.battlefield_constants import ImageUrls
+from ...constants.battlefield_constants import ImageUrls
 
 class BtrImageGenerator:
     """图片生成工具类，负责将各种数据转换为图片"""

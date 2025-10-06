@@ -1,7 +1,7 @@
 from typing import Dict, Any, Callable
 
 # 定义图片裁剪的通用参数
-from ..constants.battlefield_constants import ImageUrls
+from ...constants.battlefield_constants import ImageUrls
 
 
 class GtImageGenerator:

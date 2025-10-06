@@ -7,3 +7,6 @@ __all__ = [
     'gt_image_generator',
     'btr_image_generator',
 ]
+
+from .btr import btr_template, btr_image_generator
+from .gametool import gt_template, gt_image_generator

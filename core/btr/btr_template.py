@@ -1,6 +1,6 @@
 from astrbot.api import logger
-from ..constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
-from ..models.btr_entities import PlayerStats, Weapon, Vehicle, Soldier  # 导入实体类
+from ...constants.battlefield_constants import (ImageUrls, BackgroundColors, GameMappings, TemplateConstants)
+from ...models.btr_entities import PlayerStats, Weapon, Vehicle, Soldier
 
 import time
 
