@@ -58,25 +58,11 @@ class PlayerStats:
             highest_kill_streak=str(data.get("highestKillStreak", 0))
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 PlayerStats 实例转换为字典"""
-        return {
-            "avatar": self.avatar,
-            "user_name": self.user_name,
-            "rank_img": self.rank_img,
-            "rank": str(self.rank),
-            "__hours_played": str(self.hours_played),
-            "kills": int(self.kills),
-            "kill_death": str(self.kill_death),
-            "kills_per_minute": str(self.kills_per_minute),
-            "headshots": str(self.headshots),
-            "accuracy": str(self.accuracy),
-            "revives": str(self.revives),
-            "head_shots_num": str(self.head_shots_num),
-            "longest_head_shot": str(self.longest_head_shot),
-            "wins": str(self.wins),
-            "highest_kill_streak": str(self.highest_kill_streak)
-        }
+    def to_llm_text(self) -> str:
+        """预处理 PlayerStats 方便 llm 理解"""
+        return f"""用户{self.user_name}生涯总共击杀{self.kills}名敌军，击杀死亡比值(K/D):{self.kill_death},平均每分钟击杀(KPM):{self.kills_per_minute}，胜场:{self.wins}，急救了{self.revives}位士兵，爆头率：{self.headshots},总游玩时间，{self.hours_played}小时，最高连杀{self.highest_kill_streak}。"""
+
+
 
     def __repr__(self):
         return f"PlayerStats(user_name='{self.user_name}', rank={self.rank}, ...)"
@@ -115,7 +101,7 @@ class Weapon:
     def from_dict(cls, data: Dict[str, Any]):
         """从字典创建 Weapon 实例"""
         return cls(
-            name=data.get("name", "N/A"),
+            name=data.get("weaponName", "N/A"),
             image=data.get("image", ""),
             kills=int(data.get("kills", 0)),
             headshotKills=int(data.get("headshotKills", 0)),
@@ -128,21 +114,13 @@ class Weapon:
             type=data.get("type", "Unknown")
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 Weapon 实例转换为字典"""
-        return {
-            "name": self.name,
-            "image": self.image,
-            "kills": int(self.kills),
-            "headshotKills": int(self.headshotKills),
-            "shotsFired": int(self.shotsFired),
-            "shotsHit": int(self.shotsHit),
-            "headshots": str(self.headshots),
-            "accuracy": str(self.accuracy),
-            "kills_per_minute": str(self.kills_per_minute),
-            "timeSpent": str(self.timeSpent),
-            "type": str(self.type)
-        }
+    def to_llm_text(self,game) -> str:
+        """预处理 Weapon 方便 llm 理解"""
+        if game == "bf4":
+            return f"""使用{self.type}{self.name}，总共击杀了{self.kills}名敌军，该武器平均每分钟击杀{self.kills_per_minute}，爆头率{self.headshots},命中率{self.accuracy}"""
+        else:
+            return f"""使用{self.type}{self.name}{self.timeSpent}小时，总共击杀了{self.kills}名敌军，该武器平均每分钟击杀{self.kills_per_minute}，爆头率{self.headshots},命中率{self.accuracy}"""
+
 
     def __repr__(self):
         return f"Weapon(name='{self.name}', kills={self.kills}, ...)"
@@ -173,7 +151,7 @@ class Vehicle:
     def from_dict(cls, data: Dict[str, Any]):
         """从字典创建 Vehicle 实例"""
         return cls(
-            name=data.get("name", "N/A"),
+            name=data.get("vehicleName", "N/A"),
             image=data.get("image", ""),
             kills=int(data.get("kills", 0)),
             destroyed=str(data.get("destroyed", 0)),
@@ -182,17 +160,10 @@ class Vehicle:
             type=data.get("type", "Unknown")
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 Vehicle 实例转换为字典"""
-        return {
-            "name": self.name,
-            "image": self.image,
-            "kills": int(self.kills),
-            "destroyed": str(self.destroyed),
-            "kills_per_minute": str(self.kills_per_minute),
-            "timeSpent": str(self.timeSpent),
-            "type": str(self.type)
-        }
+    def to_llm_text(self,game) -> str:
+        """预处理 Vehicle 方便 llm 理解"""
+        return f"""使用{self.type}{self.name},{self.timeSpent}小时,总共击杀了{self.kills}名敌军,该载具平均每分钟击杀{self.kills_per_minute},摧毁了{self.destroyed}辆载具。"""
+
 
     def __repr__(self):
         return f"Vehicle(name='{self.name}', kills={self.kills}, ...)"

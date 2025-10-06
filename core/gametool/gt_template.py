@@ -104,17 +104,12 @@ def gt_main_html_builder(raw_data: dict, game: str) -> str:
     weapons_objects = prepare_weapons_data(raw_data, 3, game)
     vehicles_objects = prepare_vehicles_data(raw_data, 3)
 
-    # 将实体对象转换回字典，以便 Jinja2 模板渲染
-    player_stats_dict = player_stats.to_dict()
-    weapon_data_dicts = [w.to_dict() for w in weapons_objects] if weapons_objects else None
-    vehicle_data_dicts = [v.to_dict() for v in vehicles_objects] if vehicles_objects else None
-
     html = MAIN_TEMPLATE.render(
         banner=banner,
         update_time=update_time,
-        d=player_stats_dict, # 传递 PlayerStats 对象的字典表示
-        weapon_data=weapon_data_dicts,
-        vehicle_data=vehicle_data_dicts,
+        d=player_stats, # 传递 PlayerStats 对象的字典表示
+        weapon_data=weapons_objects,
+        vehicle_data=vehicles_objects,
         game=game,
         background_color=background_color,
     )
@@ -151,15 +146,11 @@ def gt_weapons_html_builder(raw_data: dict, game: str) -> str:
     # 整理武器数据，返回实体对象列表
     weapons_objects = prepare_weapons_data(raw_data, 50, game)
 
-    # 将实体对象转换回字典，以便 Jinja2 模板渲染
-    player_stats_dict = player_stats.to_dict()
-    weapon_data_dicts = [w.to_dict() for w in weapons_objects] if weapons_objects else None
-
     html = WEAPONS_TEMPLATE.render(
         banner=banner,
         update_time=update_time,
-        d=player_stats_dict, # 传递 PlayerStats 对象的字典表示
-        weapon_data=weapon_data_dicts,
+        d=player_stats,
+        weapon_data=weapons_objects,
         game=game,
         background_color=background_color,
     )
@@ -196,15 +187,11 @@ def gt_vehicles_html_builder(raw_data: dict, game: str) -> str:
     # 整理载具数据，返回实体对象列表
     vehicles_objects = prepare_vehicles_data(raw_data, 50)
 
-    # 将实体对象转换回字典，以便 Jinja2 模板渲染
-    player_stats_dict = player_stats.to_dict()
-    vehicle_data_dicts = [v.to_dict() for v in vehicles_objects] if vehicles_objects else None
-
     html = VEHICLES_TEMPLATE.render(
         banner=banner,
         update_time=update_time,
-        d=player_stats_dict, # 传递 PlayerStats 对象的字典表示
-        vehicle_data=vehicle_data_dicts,
+        d=player_stats, # 传递 PlayerStats 对象的字典表示
+        vehicle_data=vehicles_objects,
         game=game,
         background_color=background_color,
     )
@@ -229,13 +216,12 @@ def gt_servers_html_builder(raw_data: Dict[str, Any], game: str) -> str:
 
     servers_list_raw = raw_data.get("servers", [])
     servers_objects = [Server.from_dict(s_data) for s_data in servers_list_raw]
-    servers_data_dicts = [s.to_dict() for s in servers_objects] if servers_objects else None
 
     html = SERVERS_TEMPLATE.render(
         banner=banner,
         logo=logo,
         update_time=update_time,
-        servers_data=servers_data_dicts,
+        servers_data=servers_objects,
         game=game,
         background_color=background_color,
     )

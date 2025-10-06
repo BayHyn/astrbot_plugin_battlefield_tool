@@ -5,9 +5,9 @@ from ..core.request_util import (gt_request_api, btr_request_api)
 from ..core.plugin_logic import PlayerDataRequest, BattlefieldPluginLogic
 
 
-
 class ApiHandlers:
-    def __init__(self, plugin_logic: BattlefieldPluginLogic, html_render_func, timeout_config: int, ssc_token: str, session):
+    def __init__(self, plugin_logic: BattlefieldPluginLogic, html_render_func, timeout_config: int, ssc_token: str,
+                 session):
         self.plugin_logic = plugin_logic
         self.html_render = html_render_func
         self.timeout_config = timeout_config
@@ -15,7 +15,7 @@ class ApiHandlers:
         self._session = session
 
     async def fetch_gt_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, data_type: str,
-                             prop: str = None):
+                            prop: str = None,is_llm:bool = False):
         """
         根据游戏类型获取数据并处理响应 (非bf6/bf2042)。
         """
@@ -28,7 +28,7 @@ class ApiHandlers:
         )
 
         async for result in self.plugin_logic.process_api_response(
-                event, api_data, data_type, request_data.game, self.html_render
+                event, api_data, data_type, request_data.game, self.html_render,is_llm
         ):
             yield result
 
@@ -61,7 +61,8 @@ class ApiHandlers:
         )
         yield api_data
 
-    async def handle_btr_game(self, event: AstrMessageEvent, request_data: PlayerDataRequest, prop):
+    async def handle_btr_game(self, event: AstrMessageEvent, request_data: PlayerDataRequest, prop,
+                              is_llm: bool = False):
         """处理BTR游戏（bf2042, bf6）的统计数据查询"""
         stat_data = None
         async for data in self._fetch_btr_data(event, request_data, "stat"):
@@ -83,7 +84,8 @@ class ApiHandlers:
                 soldier_data = data
 
         async for result in self.plugin_logic.handle_btr_response(event, prop, request_data.game,
-                                                                  self.html_render, stat_data, weapon_data, vehicle_data, soldier_data):
+                                                                  self.html_render, stat_data, weapon_data,
+                                                                  vehicle_data, soldier_data, is_llm):
             yield result
 
     async def fetch_gt_servers_data(self, request_data: PlayerDataRequest, timeout_config: int, session):

@@ -87,31 +87,9 @@ class PlayerStats:
             vehicles_destroyed=data.get("segments")[0].get("stats").get("vehiclesDestroyed").get("displayValue"),
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 PlayerStats 实例转换为字典"""
-        return {
-            "avatar": self.avatar,
-            "user_name": self.user_name,
-            "level": self.level,
-            "hours_played": self.hours_played,
-            "dmg_per_min": self.dmg_per_min,
-            "kill_death": self.kill_death,
-            "headshot_percentage": self.headshot_percentage,
-            "kills_per_minute": self.kills_per_minute,
-            "human_kd_ratio": self.human_kd_ratio,
-            "kills": self.kills,
-            "kills_percentile": self.kills_percentile,
-            "assists": self.assists,
-            "deaths": self.deaths,
-            "kills_per_match": self.kills_per_match,
-            "wl_percentage": self.wl_percentage,
-            "wins": self.wins,
-            "losses": self.losses,
-            "damage_dealt": self.damage_dealt,
-            "damage_per_match": self.damage_per_match,
-            "revives": self.revives,
-            "vehicles_destroyed": self.vehicles_destroyed,
-        }
+    def to_llm_text(self) -> str:
+        """预处理 PlayerStats 方便 llm 理解"""
+        return f"""用户{self.user_name}生涯总共击杀{self.kills}名敌军，击杀死亡比值(K/D):{self.kill_death},平均每分钟击杀(KPM):{self.kills_per_minute}，胜场:{self.wins_percentile}，急救了{self.revives}位士兵，爆头率：{self.headshot_percentage},总游玩时间，{self.hours_played}小时，破坏了{self.vehicles_destroyed}辆载具。"""
 
     def __repr__(self):
         return f"PlayerStats(user_name='{self.user_name}', rank={self.level}, ...)"
@@ -192,27 +170,9 @@ class Weapon:
         }
         return category_map.get(category_name, category_name)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 Weapon 实例转换为字典"""
-        return {
-            "weapon_name": self.weapon_name,
-            "category": self.category,
-            "kills": self.kills,
-            "kills_per_minute": self.kills_per_minute,
-            "shots_accuracy": self.shots_accuracy,
-            "headshot_percentage": self.headshot_percentage,
-            "dmg_per_min": self.dmg_per_min,
-            "damage_dealt": self.damage_dealt,
-            "shots_fired": self.shots_fired,
-            "shots_hit": self.shots_hit,
-            "scoped_kills": self.scoped_kills,
-            "hipfire_kills": self.hipfire_kills,
-            "headshot_kills": self.headshot_kills,
-            "time_played": self.time_played,
-            "multi_kills": self.multi_kills,
-            "body_kills": self.body_kills,
-            "deployments": self.deployments,
-        }
+    def to_llm_text(self) -> str:
+        """预处理 Weapon 方便 llm 理解"""
+        return f"""使用{self.category}{self.weapon_name}{self.time_played}小时，总共击杀了{self.kills}名敌军，该武器平均每分钟击杀{self.kills_per_minute}，爆头率{self.headshot_percentage},命中率{self.shots_accuracy}"""
 
     def __repr__(self):
         return f"Weapon(weapon_name='{self.weapon_name}', category='{self.category}', kills={self.kills})"
@@ -321,28 +281,9 @@ class Vehicle:
         }
         return category_map.get(name, name)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 Vehicle 实例转换为字典"""
-        return {
-            "vehicle_name": self.vehicle_name,
-            "category": self.category,
-            "kills": self.kills,
-            "kills_per_minute": self.kills_per_minute,
-            "time_played": self.time_played,
-            "damage_dealt": self.damage_dealt,
-            "damage_dealt_to": self.damage_dealt_to,
-            "destroyed": self.destroyed,
-            "destroyed_with": self.destroyed_with,
-            "passenger_assists": self.passenger_assists,
-            "driver_assists": self.driver_assists,
-            "road_kills": self.road_kills,
-            "assists": self.assists,
-            "multi_kills": self.multi_kills,
-            "distance_traveled": self.distance_traveled,
-            "call_ins": self.call_ins,
-            "deployments": self.deployments,
-            "dmg_per_min": self.dmg_per_min,
-        }
+    def to_llm_text(self) -> str:
+        """预处理 Vehicle 方便 llm 理解"""
+        return f"""使用{self.category}{self.vehicle_name},{self.time_played}小时,总共击杀了{self.kills}名敌军,该载具平均每分钟击杀{self.kills_per_minute},摧毁了{self.destroyed}辆载具。"""
 
     def __repr__(self):
         return f"Vehicle(vehicle_name='{self.vehicle_name}', category='{self.category}', kills={self.kills})"
@@ -422,21 +363,9 @@ class Soldier:
         }
         return soldier_map.get(name, name)
 
-    def to_dict(self) -> Dict[str, Any]:
-        """将 Soldier 实例转换为字典"""
-        return {
-            "soldier_name": self.soldier_name,
-            "category": self.category,
-            "image_url": self.image_url,
-            "kills": self.kills,
-            "kd_ratio": self.kd_ratio,
-            "kills_per_minute": self.kills_per_minute,
-            "assists": self.assists,
-            "time_played": self.time_played,
-            "deployments": self.deployments,
-            "revives": self.revives,
-            "deaths": self.deaths,
-        }
+    def to_llm_text(self) -> str:
+        """预处理 Soldier 方便 llm 理解"""
+        return f"""最擅长使用{self.category}兵专家{self.soldier_name},{self.time_played}小时中击杀了{self.kills}名敌军,平均每分钟击杀{self.kills_per_minute},击杀死亡比值{self.kd_ratio}。"""
 
     def __repr__(self):
         return f"Soldier(soldier_name='{self.soldier_name}', category='{self.category}', kills={self.kills})"

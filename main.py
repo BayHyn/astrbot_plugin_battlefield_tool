@@ -30,12 +30,14 @@ class BattlefieldTool(Star):
             self.timeout_config = 15
             self.img_quality = 90
             self.ssc_token = ""
+            self.bf_prompt = "请根据以下数据从多个方面评价用户的游戏水平，注意要结合人设，结合上下文，保证对话不冲突"
         else:
             logger.debug("BattlefieldTool: 使用用户配置文件")
             self.default_game = config.get("default_game", "bfv")
             self.timeout_config = config.get("timeout_config", 15)
             self.img_quality = config.get("img_quality", 90)
             self.ssc_token = config.get("ssc_token", "")
+            self.bf_prompt = config.get("bf_prompt", "请根据以下数据从多个方面评价用户的游戏水平，注意要结合人设，结合上下文，保证对话不冲突")
 
         self.bf_data_path = StarTools.get_data_dir("battleField_tool_plugin")
         self.db = BattleFieldDataBase(self.bf_data_path)  # 初始化数据库
@@ -44,7 +46,7 @@ class BattlefieldTool(Star):
         self.default_platform = "pc"  # 默认平台
         self.plugin_logic = BattlefieldPluginLogic(self.db_service, self.default_game, self.timeout_config,
                                                self.img_quality,
-                                               self._session, self.default_platform)
+                                               self._session, self.bf_prompt,self.default_platform)
         self.api_handlers = ApiHandlers(self.plugin_logic, self.html_render, self.timeout_config, self.ssc_token,
                                         self._session)
 
@@ -177,24 +179,25 @@ class BattlefieldTool(Star):
         return await self.db_service.upsert_user_bind(user_id, ea_name, "")
 
     @filter.llm_tool(name="bf_tool_stat")
-    async def bf_tool_stat(self, event: AstrMessageEvent, ea_name: str= None,user_id:str=None, game: str= None):
+    async def bf_tool_stat(self, event: AstrMessageEvent,user_id:str=None, game: str= None,ea_name: str= None):
         """
             战地风云系列查询战绩
             Args:
-                ea_name (string): 指定查询账户名，用户没有指定则填None
-                user_id (string): 用户查询别人战绩时填写的id，用户没有指定则填None
-                game (string):  游戏代号(可选bf4、bf1、bfv、bf2042、bf6)，用户没有指定则填None
+                user_id (string): 用户查询别人战绩时填写的id，用户没有指明就不要填，函数会自动查询
+                game (string):  游戏代号(可选bf4、bf1、bfv、bf2042、bf6)，用户没有指明就不要填，函数会自动查询
+                ea_name (string): 查询其他人时EA的账户名，注意是EA账户名，不是用户id，用户没有指明就不要填，函数会自动查询
         """
-        request_data = await self.plugin_logic.handle_player_llm_request(ea_name,user_id, game)
+        logger.debug(f"""{ea_name},{user_id},{game}""")
+        request_data = await self.plugin_logic.handle_player_llm_request(event,ea_name,user_id, game)
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
             return
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
         if request_data.game in ["bf2042", "bf6"]:
-            async for result in self.api_handlers.handle_btr_game(event, request_data, "stat"):
+            async for result in self.api_handlers.handle_btr_game(event, request_data, "stat",True):
                 yield result
         else:
-            async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all"):
+            async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all",True):
                 yield result
 
     @filter.command("bf_init")

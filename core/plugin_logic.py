@@ -17,6 +17,9 @@ from .btr.btr_template import (
     btr_vehicles_html_builder,
     btr_soldier_html_builder,
 )
+
+from .gametool.gt_llm import gt_main_llm_builder
+from .btr.btr_llm import btr_main_llm_builder
 from .gametool.gt_image_generator import GtImageGenerator
 from .btr.btr_image_generator import BtrImageGenerator
 
@@ -28,7 +31,7 @@ import time
 
 class BattlefieldPluginLogic:
     def __init__(self, db_service: BattleFieldDBService, default_game: str, timeout_config: int, img_quality: int,
-                 session, default_platform: str = "pc"):
+                 session, bf_prompt: str, default_platform: str = "pc"):
         self.db_service = db_service
         self.default_game = default_game
         self.timeout_config = timeout_config
@@ -37,6 +40,7 @@ class BattlefieldPluginLogic:
         self.default_platform = default_platform  # 添加默认平台配置
         self.LANG_CN = "zh-cn"
         self.LANG_TW = "zh-tw"
+        self.bf_prompt = bf_prompt
         self.SUPPORTED_GAMES = ["bf4", "bf1", "bfv", "bf6", "bf2042"]
         self.STAT_PATTERN = re.compile(
             r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?$"
@@ -98,21 +102,25 @@ class BattlefieldPluginLogic:
         return ea_name, error_msg
 
     async def handle_btr_response(self, event, data_type, game, html_render_func, stat_data, weapon_data: list = None,
-                                   vehicle_data=None, soldier_data=None,
-                                   ):
+                                  vehicle_data=None, soldier_data=None, is_llm: bool = False,
+                                  ):
         """处理bf6/bf2042等新API的响应逻辑"""
-        handler_map = {
-            "stat": (self.btr_image_generator.generate_main_btr_data_pic, btr_main_html_builder),
-            "weapons": (self.btr_image_generator.generate_weapons_btr_data_pic, btr_weapons_html_builder),
-            "vehicles": (self.btr_image_generator.generate_vehicles_btr_data_pic, btr_vehicles_html_builder),
-            "soldiers": (self.btr_image_generator.generate_soldiers_btr_data_pic, btr_soldier_html_builder),
-        }
+        if is_llm:
+            yield btr_main_llm_builder(stat_data, weapon_data, vehicle_data, soldier_data, game, self.bf_prompt)
+        else:
+            handler_map = {
+                "stat": (self.btr_image_generator.generate_main_btr_data_pic, btr_main_html_builder),
+                "weapons": (self.btr_image_generator.generate_weapons_btr_data_pic, btr_weapons_html_builder),
+                "vehicles": (self.btr_image_generator.generate_vehicles_btr_data_pic, btr_vehicles_html_builder),
+                "soldiers": (self.btr_image_generator.generate_soldiers_btr_data_pic, btr_soldier_html_builder),
+            }
 
-        generator_func, html_builder_func = handler_map[data_type]
+            generator_func, html_builder_func = handler_map[data_type]
 
-        pic_url = await generator_func(game, html_render_func, html_builder_func, stat_data, weapon_data, vehicle_data,
-                                       soldier_data)
-        yield event.image_result(pic_url)
+            pic_url = await generator_func(game, html_render_func, html_builder_func, stat_data, weapon_data,
+                                           vehicle_data,
+                                           soldier_data)
+            yield event.image_result(pic_url)
 
     def _handle_error_response(self, api_data: dict) -> Union[str, None]:
         """统一处理API响应中的错误信息"""
@@ -125,26 +133,29 @@ class BattlefieldPluginLogic:
             return "API返回未知错误"
         return None
 
-    async def process_api_response(self, event, api_data, data_type, game, html_render_func):
+    async def process_api_response(self, event, api_data, data_type, game, html_render_func, is_llm: bool = False):
         """处理API响应通用逻辑"""
-        error_msg = self._handle_error_response(api_data)
-        if error_msg:
-            yield event.plain_result(error_msg)
-            return
+        if is_llm:
+            yield gt_main_llm_builder(api_data, game, self.bf_prompt)
+        else:
+            error_msg = self._handle_error_response(api_data)
+            if error_msg:
+                yield event.plain_result(error_msg)
+                return
 
-        api_data["__update_time"] = time.time()
+            api_data["__update_time"] = time.time()
 
-        # 根据数据类型调用对应的图片生成方法
-        handler_map = {
-            "stat": (self.gt_image_generator.generate_main_gt_data_pic, gt_main_html_builder),
-            "weapons": (self.gt_image_generator.generate_weapons_gt_data_pic, gt_weapons_html_builder),
-            "vehicles": (self.gt_image_generator.generate_vehicles_gt_data_pic, gt_vehicles_html_builder),
-            "servers": (self.gt_image_generator.generate_servers_gt_data_pic, gt_servers_html_builder),
-        }
+            # 根据数据类型调用对应的图片生成方法
+            handler_map = {
+                "stat": (self.gt_image_generator.generate_main_gt_data_pic, gt_main_html_builder),
+                "weapons": (self.gt_image_generator.generate_weapons_gt_data_pic, gt_weapons_html_builder),
+                "vehicles": (self.gt_image_generator.generate_vehicles_gt_data_pic, gt_vehicles_html_builder),
+                "servers": (self.gt_image_generator.generate_servers_gt_data_pic, gt_servers_html_builder),
+            }
 
-        generator_func, html_builder_func = handler_map[data_type]
-        pic_url = await generator_func(api_data, game, html_render_func, html_builder_func)
-        yield event.image_result(pic_url)
+            generator_func, html_builder_func = handler_map[data_type]
+            pic_url = await generator_func(api_data, game, html_render_func, html_builder_func)
+            yield event.image_result(pic_url)
 
     async def handle_player_data_request(
             self, event: AstrMessageEvent, str_to_remove_list: list
@@ -160,7 +171,7 @@ class BattlefieldPluginLogic:
         message_str = event.message_str
         lang = self.LANG_CN
         qq_id = event.get_sender_id()
-        session_channel_id = self.get_session_channel_id(event)  # 使用辅助方法获取session_channel_id
+        session_channel_id = self.get_session_channel_id(event)
         error_msg = None
         ea_name = None
         game = None
@@ -204,10 +215,12 @@ class BattlefieldPluginLogic:
         )
 
     async def handle_player_llm_request(self, event: AstrMessageEvent, ea_name: str = None, user_id: str = None,
-                                         game: str = None):
+                                        game: str = None):
         """解析LLM请求参数、构建PlayerDataRequest"""
-        session_channel_id = self.get_session_channel_id(event)  # 使用辅助方法获取session_channel_id
-        #处理EA_NAME
+        session_channel_id = self.get_session_channel_id(event)
+        lang = self.LANG_CN
+
+        # 处理EA_NAME
         ea_name_temp = None
         error_msg = None
         if ea_name:
@@ -224,23 +237,18 @@ class BattlefieldPluginLogic:
         if game_error:
             error_msg = game_error
 
-        if error_msg:
-            return error_msg
-        else:
-            return PlayerDataRequest(
-                message_str=event.message_str,
-                lang=self.LANG_CN,
-                qq_id=user_id,
-                ea_name=ea_name_temp,
-                game=game,
-                server_name="",
-                error_msg=error_msg,
-            )
-
-
-
-
-
+        # 战地1使用繁中
+        if game == "bf1":
+            lang = self.LANG_TW
+        return PlayerDataRequest(
+            message_str=event.message_str,
+            lang=lang,
+            qq_id=user_id,
+            ea_name=ea_name_temp,
+            game=game,
+            server_name="",
+            error_msg=error_msg,
+        )
 
     @staticmethod
     async def _parse_input_regex(
