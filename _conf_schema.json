@@ -17,6 +17,13 @@
     "type": "int",
     "default": 90
   },
+  "bf_prompt": {
+    "hint": "调用bf_tool工具时给LLM的Prompt",
+    "description": "战绩评价Prompt",
+    "type": "string",
+    "default": "请根据以下数据从多个方面评价用户的游戏水平，注意要结合人设，结合上下文，保证对话不冲突"
+  },
+
   "ssc_token":{
     "hint": "为避免api被滥用，所以做了限流，没有token限制每分钟5次(bf2042)",
     "description": "请求token",
