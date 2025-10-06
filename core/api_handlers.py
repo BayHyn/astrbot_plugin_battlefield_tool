@@ -1,8 +1,8 @@
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api import logger
 
-from ..utils.request_util import (gt_request_api, btr_request_api)
-from ..utils.plugin_logic import PlayerDataRequest, BattlefieldPluginLogic
+from ..core.request_util import (gt_request_api, btr_request_api)
+from ..core.plugin_logic import PlayerDataRequest, BattlefieldPluginLogic
 
 
 
@@ -13,25 +13,6 @@ class ApiHandlers:
         self.timeout_config = timeout_config
         self.ssc_token = ssc_token
         self._session = session
-
-    async def process_api_response_and_yield(self, event: AstrMessageEvent, api_data, data_type: str, game: str):
-        """
-        处理API响应并yield结果
-        """
-        async for result in self.plugin_logic.process_api_response(
-                event, api_data, data_type, game, self.html_render
-        ):
-            yield result
-
-    async def _process_btr_response_and_yield(self, event: AstrMessageEvent, data_type: str, game: str,
-                                            stat_data, weapon_data, vehicle_data, soldier_data):
-        """
-        处理BTR响应并yield结果
-        """
-        async for result in self.plugin_logic.handle_btr_response(
-                event, data_type, game, self.html_render, stat_data, weapon_data, vehicle_data, soldier_data
-        ):
-            yield result
 
     async def fetch_gt_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, data_type: str,
                              prop: str = None):
@@ -46,8 +27,8 @@ class ApiHandlers:
             session=self._session,
         )
 
-        async for result in self.process_api_response_and_yield(
-                event, api_data, data_type, request_data.game
+        async for result in self.plugin_logic.process_api_response(
+                event, api_data, data_type, request_data.game, self.html_render
         ):
             yield result
 
@@ -101,8 +82,8 @@ class ApiHandlers:
             async for data in self._fetch_btr_data(event, request_data, "soldiers"):
                 soldier_data = data
 
-        async for result in self._process_btr_response_and_yield(event, prop, request_data.game,
-                                                                  stat_data, weapon_data, vehicle_data, soldier_data):
+        async for result in self.plugin_logic.handle_btr_response(event, prop, request_data.game,
+                                                                  self.html_render, stat_data, weapon_data, vehicle_data, soldier_data):
             yield result
 
     async def fetch_gt_servers_data(self, request_data: PlayerDataRequest, timeout_config: int, session):

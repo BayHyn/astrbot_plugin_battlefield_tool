@@ -5,8 +5,8 @@ from astrbot.api import logger
 
 from .database.battlefield_database import BattleFieldDataBase
 from .database.battlefield_db_service import BattleFieldDBService
-from .utils.plugin_logic import BattlefieldPluginLogic
-from .utils.api_handlers import ApiHandlers
+from .core.plugin_logic import BattlefieldPluginLogic
+from .core.api_handlers import ApiHandlers
 
 import aiohttp
 

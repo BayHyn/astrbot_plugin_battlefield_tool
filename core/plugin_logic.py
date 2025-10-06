@@ -5,20 +5,20 @@ from typing import Union, Pattern
 from ..database.battlefield_db_service import (
     BattleFieldDBService,
 )
-from ..utils.gt_template import (
+from ..core.gt_template import (
     gt_main_html_builder,
     gt_weapons_html_builder,
     gt_vehicles_html_builder,
     gt_servers_html_builder,
 )
-from ..utils.btr_template import (
+from ..core.btr_template import (
     btr_main_html_builder,
     btr_weapons_html_builder,
     btr_vehicles_html_builder,
     btr_soldier_html_builder,
 )
-from ..utils.gt_image_generator import GtImageGenerator
-from ..utils.btr_image_generator import BtrImageGenerator
+from ..core.gt_image_generator import GtImageGenerator
+from ..core.btr_image_generator import BtrImageGenerator
 
 from ..models.player_data import PlayerDataRequest
 
