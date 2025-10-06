@@ -44,7 +44,7 @@ class BattlefieldPluginLogic:
         self.gt_image_generator = GtImageGenerator(img_quality)
         self.btr_image_generator = BtrImageGenerator(img_quality)
 
-    def _get_session_channel_id(self, event: AstrMessageEvent) -> str:
+    def get_session_channel_id(self, event: AstrMessageEvent) -> str:
         """根据事件类型获取会话渠道ID"""
         if not event.is_private_chat():
             return event.get_group_id()
@@ -97,7 +97,7 @@ class BattlefieldPluginLogic:
                 ea_name = bind_data["ea_name"]
         return ea_name, error_msg
 
-    async def _handle_btr_response(self,event, data_type, game, html_render_func, stat_data, weapon_data: list = None,
+    async def handle_btr_response(self, event, data_type, game, html_render_func, stat_data, weapon_data: list = None,
                                    vehicle_data=None, soldier_data=None,
                                    ):
         """处理bf6/bf2042等新API的响应逻辑"""
@@ -125,7 +125,7 @@ class BattlefieldPluginLogic:
             return "API返回未知错误"
         return None
 
-    async def _process_api_response(self, event, api_data, data_type, game, html_render_func):
+    async def process_api_response(self, event, api_data, data_type, game, html_render_func):
         """处理API响应通用逻辑"""
         error_msg = self._handle_error_response(api_data)
         if error_msg:
@@ -146,7 +146,7 @@ class BattlefieldPluginLogic:
         pic_url = await generator_func(api_data, game, html_render_func, html_builder_func)
         yield event.image_result(pic_url)
 
-    async def _handle_player_data_request(
+    async def handle_player_data_request(
             self, event: AstrMessageEvent, str_to_remove_list: list
     ) -> PlayerDataRequest:
         """
@@ -160,7 +160,7 @@ class BattlefieldPluginLogic:
         message_str = event.message_str
         lang = self.LANG_CN
         qq_id = event.get_sender_id()
-        session_channel_id = self._get_session_channel_id(event)  # 使用辅助方法获取session_channel_id
+        session_channel_id = self.get_session_channel_id(event)  # 使用辅助方法获取session_channel_id
         error_msg = None
         ea_name = None
         game = None
@@ -202,6 +202,45 @@ class BattlefieldPluginLogic:
             server_name=server_name,
             error_msg=error_msg,
         )
+
+    async def handle_player_llm_request(self, event: AstrMessageEvent, ea_name: str = None, user_id: str = None,
+                                         game: str = None):
+        """解析LLM请求参数、构建PlayerDataRequest"""
+        session_channel_id = self.get_session_channel_id(event)  # 使用辅助方法获取session_channel_id
+        #处理EA_NAME
+        ea_name_temp = None
+        error_msg = None
+        if ea_name:
+            ea_name_temp = ea_name
+        else:
+            user_id = user_id if user_id else event.get_sender_id()
+            bind_data = await self.db_service.query_bind_user(user_id)
+            if bind_data is None:
+                error_msg = f"没有找到{user_id}绑定的账户，请让用户先使用bind [ea_name]绑定或让用户告诉你信息你帮他绑定"
+            else:
+                ea_name_temp = bind_data["ea_name"]
+        # 处理游戏代号
+        game, game_error = await self._resolve_game_tag(game, session_channel_id)
+        if game_error:
+            error_msg = game_error
+
+        if error_msg:
+            return error_msg
+        else:
+            return PlayerDataRequest(
+                message_str=event.message_str,
+                lang=self.LANG_CN,
+                qq_id=user_id,
+                ea_name=ea_name_temp,
+                game=game,
+                server_name="",
+                error_msg=error_msg,
+            )
+
+
+
+
+
 
     @staticmethod
     async def _parse_input_regex(

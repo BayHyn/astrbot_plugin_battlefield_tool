@@ -7,18 +7,18 @@ from ..utils.plugin_logic import PlayerDataRequest, BattlefieldPluginLogic
 
 
 class ApiHandlers:
-    def __init__(self, handlers: BattlefieldPluginLogic, html_render_func, timeout_config: int, ssc_token: str, session):
-        self.handlers = handlers
+    def __init__(self, plugin_logic: BattlefieldPluginLogic, html_render_func, timeout_config: int, ssc_token: str, session):
+        self.plugin_logic = plugin_logic
         self.html_render = html_render_func
         self.timeout_config = timeout_config
         self.ssc_token = ssc_token
         self._session = session
 
-    async def _process_api_response_and_yield(self, event: AstrMessageEvent, api_data, data_type: str, game: str):
+    async def process_api_response_and_yield(self, event: AstrMessageEvent, api_data, data_type: str, game: str):
         """
         处理API响应并yield结果
         """
-        async for result in self.handlers._process_api_response(
+        async for result in self.plugin_logic.process_api_response(
                 event, api_data, data_type, game, self.html_render
         ):
             yield result
@@ -28,12 +28,12 @@ class ApiHandlers:
         """
         处理BTR响应并yield结果
         """
-        async for result in self.handlers._handle_btr_response(
+        async for result in self.plugin_logic.handle_btr_response(
                 event, data_type, game, self.html_render, stat_data, weapon_data, vehicle_data, soldier_data
         ):
             yield result
 
-    async def _fetch_gt_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, data_type: str,
+    async def fetch_gt_data(self, event: AstrMessageEvent, request_data: PlayerDataRequest, data_type: str,
                              prop: str = None):
         """
         根据游戏类型获取数据并处理响应 (非bf6/bf2042)。
@@ -41,12 +41,12 @@ class ApiHandlers:
         api_data = await gt_request_api(
             request_data.game,
             prop,
-            {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.handlers.default_platform},
+            {"name": request_data.ea_name, "lang": request_data.lang, "platform": self.plugin_logic.default_platform},
             self.timeout_config,
             session=self._session,
         )
 
-        async for result in self._process_api_response_and_yield(
+        async for result in self.process_api_response_and_yield(
                 event, api_data, data_type, request_data.game
         ):
             yield result
@@ -80,7 +80,7 @@ class ApiHandlers:
         )
         yield api_data
 
-    async def _handle_btr_game(self, event: AstrMessageEvent, request_data: PlayerDataRequest, prop):
+    async def handle_btr_game(self, event: AstrMessageEvent, request_data: PlayerDataRequest, prop):
         """处理BTR游戏（bf2042, bf6）的统计数据查询"""
         stat_data = None
         async for data in self._fetch_btr_data(event, request_data, "stat"):
@@ -105,7 +105,7 @@ class ApiHandlers:
                                                                   stat_data, weapon_data, vehicle_data, soldier_data):
             yield result
 
-    async def _fetch_gt_servers_data(self, request_data: PlayerDataRequest, timeout_config: int, session):
+    async def fetch_gt_servers_data(self, request_data: PlayerDataRequest, timeout_config: int, session):
         """
         获取GT服务器数据。
         """
@@ -115,7 +115,7 @@ class ApiHandlers:
             {
                 "name": request_data.server_name,
                 "lang": request_data.lang,
-                "platform": self.handlers.default_platform,
+                "platform": self.plugin_logic.default_platform,
                 "region": "all",
                 "limit": 30,
             },
