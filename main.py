@@ -15,7 +15,7 @@ import aiohttp
     "astrbot_plugin_battlefield_tool",  # name
     "SHOOTING_STAR_C",  # author
     "战地风云战绩查询插件",  # desc
-    "v1.10.0",  # version
+    "v1.10.1",  # version
 )
 class BattlefieldTool(Star):
 
