@@ -120,7 +120,7 @@ class BattlefieldPluginLogic:
             pic_url = await generator_func(game, html_render_func, html_builder_func, stat_data, weapon_data,
                                            vehicle_data,
                                            soldier_data)
-            yield event.image_result(pic_url)
+            yield pic_url
 
     def _handle_error_response(self, api_data: dict) -> Union[str, None]:
         """统一处理API响应中的错误信息"""
@@ -155,7 +155,7 @@ class BattlefieldPluginLogic:
 
             generator_func, html_builder_func = handler_map[data_type]
             pic_url = await generator_func(api_data, game, html_render_func, html_builder_func)
-            yield event.image_result(pic_url)
+            yield pic_url
 
     async def handle_player_data_request(
             self, event: AstrMessageEvent, str_to_remove_list: list

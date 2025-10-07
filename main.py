@@ -30,14 +30,14 @@ class BattlefieldTool(Star):
             self.timeout_config = 15
             self.img_quality = 90
             self.ssc_token = ""
-            self.bf_prompt = "请根据以下数据从多个方面评价用户的游戏水平，注意要结合人设，结合上下文，保证对话不冲突"
+            self.bf_prompt = "请根据以下评判标准和数据从多个方面评价用户的游戏水平，注意要结合人设和上下文，保证对话不冲突，1.K/D(击杀/死亡比):薯薯:小于1，Pro:大于2.5说明： 高KD是Pro哥基础，但单纯KD高可能是架枪蹲人。Pro哥的KD是在高强度突击和救点中打出来的。2.KPM(每分钟击杀):薯薯:小于0.7，Pro:大于1.5说明： 这是衡量你击杀效率的关键指标。KPM低而KD高，大概率是喜欢偷偷地躲起来蹲人，可以适当调侃这些胆小鬼。3.命中率&爆头率这个指标要综合判断，不能直接根据这个参数判断是不是pro哥命中率要根据枪械来看，喷子命中即使超过100%也是正常的，其他种类枪械正常玩家也不会太高爆头率狙击枪超过90%也可以算正常玩家过低的爆头率可能是载具玩家两个指标都超过50%很有可能是挂钩，遇到挂钩直接开喷，谨慎使用，枪械数据量较少时可能是巧合4.急救数神医专属指标5.载具注意击杀和摧毁，击杀特别多但摧毁特别少的那就是捞薯凶手、恐怖铁皮人(只能用来调侃坦克)补充：可以根据玩家使用武器、载具、飞机的偏好分为不同的Pro哥"
         else:
             logger.debug("BattlefieldTool: 使用用户配置文件")
             self.default_game = config.get("default_game", "bfv")
             self.timeout_config = config.get("timeout_config", 15)
             self.img_quality = config.get("img_quality", 90)
             self.ssc_token = config.get("ssc_token", "")
-            self.bf_prompt = config.get("bf_prompt", "请根据以下数据从多个方面评价用户的游戏水平，注意要结合人设，结合上下文，保证对话不冲突")
+            self.bf_prompt = config.get("bf_prompt", "请根据以下评判标准和数据从多个方面评价用户的游戏水平，注意要结合人设和上下文，保证对话不冲突，1.K/D(击杀/死亡比):薯薯:小于1，Pro:大于2.5说明： 高KD是Pro哥基础，但单纯KD高可能是架枪蹲人。Pro哥的KD是在高强度突击和救点中打出来的。2.KPM(每分钟击杀):薯薯:小于0.7，Pro:大于1.5说明： 这是衡量你击杀效率的关键指标。KPM低而KD高，大概率是喜欢偷偷地躲起来蹲人，可以适当调侃这些胆小鬼。3.命中率&爆头率这个指标要综合判断，不能直接根据这个参数判断是不是pro哥命中率要根据枪械来看，喷子命中即使超过100%也是正常的，其他种类枪械正常玩家也不会太高爆头率狙击枪超过90%也可以算正常玩家过低的爆头率可能是载具玩家两个指标都超过50%很有可能是挂钩，遇到挂钩直接开喷，谨慎使用，枪械数据量较少时可能是巧合4.急救数神医专属指标5.载具注意击杀和摧毁，击杀特别多但摧毁特别少的那就是捞薯凶手、恐怖铁皮人(只能用来调侃坦克)补充：可以根据玩家使用武器、载具、飞机的偏好分为不同的Pro哥")
 
         self.bf_data_path = StarTools.get_data_dir("battleField_tool_plugin")
         self.db = BattleFieldDataBase(self.bf_data_path)  # 初始化数据库
@@ -45,8 +45,8 @@ class BattlefieldTool(Star):
         self._session = None
         self.default_platform = "pc"  # 默认平台
         self.plugin_logic = BattlefieldPluginLogic(self.db_service, self.default_game, self.timeout_config,
-                                               self.img_quality,
-                                               self._session, self.bf_prompt,self.default_platform)
+                                                   self.img_quality,
+                                                   self._session, self.bf_prompt, self.default_platform)
         self.api_handlers = ApiHandlers(self.plugin_logic, self.html_render, self.timeout_config, self.ssc_token,
                                         self._session)
 
@@ -70,10 +70,10 @@ class BattlefieldTool(Star):
 
         if request_data.game in ["bf2042", "bf6"]:
             async for result in self.api_handlers.handle_btr_game(event, request_data, "stat"):
-                yield result
+                yield event.image_result(result)
         else:
             async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all"):
-                yield result
+                yield event.image_result(result)
 
     @filter.command("weapons", alias=["武器"])
     async def bf_weapons(self, event: AstrMessageEvent):
@@ -88,10 +88,10 @@ class BattlefieldTool(Star):
 
         if request_data.game in ["bf2042", "bf6"]:
             async for result in self.api_handlers.handle_btr_game(event, request_data, "weapons"):
-                yield result
+                yield event.image_result(result)
         else:
             async for result in self.api_handlers.fetch_gt_data(event, request_data, "weapons", "weapons"):
-                yield result
+                yield event.image_result(result)
 
     @filter.command("vehicles", alias=["载具"])
     async def bf_vehicles(self, event: AstrMessageEvent):
@@ -105,10 +105,10 @@ class BattlefieldTool(Star):
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
         if request_data.game in ["bf2042", "bf6"]:
             async for result in self.api_handlers.handle_btr_game(event, request_data, "vehicles"):
-                yield result
+                yield event.image_result(result)
         else:
             async for result in self.api_handlers.fetch_gt_data(event, request_data, "vehicles", "vehicles"):
-                yield result
+                yield event.image_result(result)
 
     @filter.command("soldiers", alias=["专家"])
     async def bf_soldier(self, event: AstrMessageEvent):
@@ -125,7 +125,7 @@ class BattlefieldTool(Star):
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
         async for result in self.api_handlers.handle_btr_game(event, request_data, "soldiers"):
-            yield result
+            yield event.image_result(result)
 
     @filter.command("servers", alias=["服务器"])
     async def bf_servers(self, event: AstrMessageEvent):
@@ -179,7 +179,7 @@ class BattlefieldTool(Star):
         return await self.db_service.upsert_user_bind(user_id, ea_name, "")
 
     @filter.llm_tool(name="bf_tool_stat")
-    async def bf_tool_stat(self, event: AstrMessageEvent,user_id:str=None, game: str= None,ea_name: str= None):
+    async def bf_tool_stat(self, event: AstrMessageEvent, user_id: str = None, game: str = None, ea_name: str = None):
         """
             战地风云系列查询战绩
             Args:
@@ -188,7 +188,7 @@ class BattlefieldTool(Star):
                 ea_name (string): 查询其他人时EA的账户名，注意是EA账户名，不是用户id，用户没有指明就不要填，函数会自动查询
         """
         logger.debug(f"""{ea_name},{user_id},{game}""")
-        request_data = await self.plugin_logic.handle_player_llm_request(event,ea_name,user_id, game)
+        request_data = await self.plugin_logic.handle_player_llm_request(event, ea_name, user_id, game)
         if request_data.error_msg:
             yield request_data.error_msg
             return
