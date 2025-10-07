@@ -48,7 +48,7 @@ class PlayerStats:
             hours_played=str(data.get("__hours_played", 0.0)), # 注意这里是 __hours_played
             kills=int(data.get("kills", 0)),
             kill_death=str(data.get("killDeath", 0.0)),
-            kills_per_minute=str(data.get("killsPerMinute", 0.0)),
+            kills_per_minute=str(round(data.get("killsPerMinute", 0.0), 2)),
             headshots=str(data.get("headshots", 0.0)),
             accuracy=str(data.get("accuracy", 0.0)),
             revives=str(data.get("revives", 0)),
@@ -83,7 +83,7 @@ class Weapon:
                  headshots: str, # 爆头率
                  accuracy: str, # 命中率
                  kills_per_minute: str, # 武器每分钟击杀数
-                 timeSpent: str, # 武器装备时间（小时）
+                 time_spent: str, # 武器装备时间（小时）
                  type: str): # 武器类型
         self.name = name
         self.image = image
@@ -94,7 +94,7 @@ class Weapon:
         self.headshots = headshots
         self.accuracy = accuracy
         self.kills_per_minute = kills_per_minute
-        self.timeSpent = timeSpent
+        self.time_spent = time_spent
         self.type = type
 
     @classmethod
@@ -109,8 +109,8 @@ class Weapon:
             shotsHit=int(data.get("shotsHit", 0)),
             headshots=str(data.get("headshots", 0)),
             accuracy=str(data.get("accuracy", 0.0)),
-            kills_per_minute=str(data.get("killsPerMinute", "0.0")),
-            timeSpent=str(data.get("timeSpent", "0.0")),
+            kills_per_minute=str(round(data.get("killsPerMinute", 0.0), 2)),
+            time_spent=str(round(data.get("timeEquipped", 0.0) / 3600, 1)),
             type=data.get("type", "Unknown")
         )
 
@@ -119,7 +119,7 @@ class Weapon:
         if game == "bf4":
             return f"""使用{self.type}{self.name}，总共击杀了{self.kills}名敌军，该武器平均每分钟击杀{self.kills_per_minute}，爆头率{self.headshots},命中率{self.accuracy}"""
         else:
-            return f"""使用{self.type}{self.name}{self.timeSpent}小时，总共击杀了{self.kills}名敌军，该武器平均每分钟击杀{self.kills_per_minute}，爆头率{self.headshots},命中率{self.accuracy}"""
+            return f"""使用{self.type}{self.name}{self.time_spent}小时，总共击杀了{self.kills}名敌军，该武器平均每分钟击杀{self.kills_per_minute}，爆头率{self.headshots},命中率{self.accuracy}"""
 
 
     def __repr__(self):
@@ -137,14 +137,14 @@ class Vehicle:
                  kills: int, # 载具击杀数
                  destroyed: str, # 载具摧毁数
                  kills_per_minute: str, # 载具每分钟击杀数
-                 timeSpent: str, # 载具使用时间（小时）
+                 time_spent: str, # 载具使用时间（小时）
                  type: str): # 载具类型
         self.name = name
         self.image = image
         self.kills = kills
         self.destroyed = destroyed
         self.kills_per_minute = kills_per_minute
-        self.timeSpent = timeSpent
+        self.time_spent = time_spent
         self.type = type
 
     @classmethod
@@ -155,14 +155,14 @@ class Vehicle:
             image=data.get("image", ""),
             kills=int(data.get("kills", 0)),
             destroyed=str(data.get("destroyed", 0)),
-            kills_per_minute=str(data.get("killsPerMinute", "0.0")),
-            timeSpent=str(data.get("timeSpent", "0.0")),
+            kills_per_minute=str(round(data.get("killsPerMinute", 0.0), 2)),
+            time_spent=str(round(data.get("timeIn", 0.0) / 3600, 1)),
             type=data.get("type", "Unknown")
         )
 
     def to_llm_text(self,game) -> str:
         """预处理 Vehicle 方便 llm 理解"""
-        return f"""使用{self.type}{self.name},{self.timeSpent}小时,总共击杀了{self.kills}名敌军,该载具平均每分钟击杀{self.kills_per_minute},摧毁了{self.destroyed}辆载具。"""
+        return f"""使用{self.type}{self.name},{self.time_spent}小时,总共击杀了{self.kills}名敌军,该载具平均每分钟击杀{self.kills_per_minute},摧毁了{self.destroyed}辆载具。"""
 
 
     def __repr__(self):

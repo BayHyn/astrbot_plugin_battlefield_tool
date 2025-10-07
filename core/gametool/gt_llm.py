@@ -17,10 +17,6 @@ def prepare_weapons_data(d: dict, lens: int) -> List[Weapon]:
     weapons_objects = []
     for w_data in weapons_list_raw[:lens]:
         if w_data.get("kills", 0) > 0:
-            # 计算 kpm 和 timeEquipped 并转换为 str 类型
-            w_data["kills_per_minute"] = str(round(w_data.get("kills_per_minute", 0.0), 2))
-            w_data["timeSpent"] = str(round(w_data.get("timeEquipped", 0.0) / 3600, 1))  # 转换为小时
-
             # 创建 Weapon 对象
             weapon = Weapon.from_dict(w_data)
             weapons_objects.append(weapon)
@@ -36,11 +32,6 @@ def prepare_vehicles_data(d: dict, lens: int) -> List[Vehicle]:
     vehicles_objects = []
     for v_data in vehicles_list_raw[:lens]:
         if v_data.get("kills", 0) > 0:
-            # 计算 kpm 和 timeSpent 并转换为 str 类型
-            v_data["kills_per_minute"] = str(round(v_data.get("kills_per_minute", 0.0), 2))
-            v_data["timeSpent"] = str(round(v_data.get("timeIn", 0.0) / 3600, 1))  # 转换为小时
-
-            # 创建 Vehicle 对象
             vehicle = Vehicle.from_dict(v_data)
             vehicles_objects.append(vehicle)
 
@@ -69,8 +60,8 @@ def gt_main_llm_builder(raw_data: dict, game: str, bf_prompt: str) -> str:
     player_stats = PlayerStats.from_gt_dict(processed_data)
 
     # 整理武器和载具数据，返回实体对象列表
-    weapons_objects = prepare_weapons_data(raw_data, 2)
-    vehicles_objects = prepare_vehicles_data(raw_data, 2)
+    weapons_objects = prepare_weapons_data(processed_data, 2)
+    vehicles_objects = prepare_vehicles_data(processed_data, 2)
 
     llm_text = f"""{bf_prompt}，{game}中{player_stats.to_llm_text()}"""
 

@@ -30,14 +30,6 @@ def prepare_weapons_data(d: dict, lens: int, game: str) -> List[Weapon]:
     weapons_objects = []
     for w_data in weapons_list_raw[:lens]:
         if w_data.get("kills", 0) > 0:
-            # 根据游戏类型处理 timeEquipped
-            if game == "bf4":
-                w_data["timeSpent"] = "0" # bf4 武器时间不显示，设为0
-            
-            # 计算 kpm 和 timeEquipped 并转换为 str 类型
-            w_data["kills_per_minute"] = str(round(w_data.get("kills_per_minute", 0.0), 2))
-            w_data["timeSpent"] = str(round(w_data.get("timeEquipped", 0.0) / 3600, 1)) # 转换为小时
-
             # 创建 Weapon 对象
             weapon = Weapon.from_dict(w_data)
             weapons_objects.append(weapon)
@@ -54,11 +46,6 @@ def prepare_vehicles_data(d: dict, lens: int) -> List[Vehicle]:
         if v_data.get("kills", 0) > 0:
             # 处理图片URL
             v_data["image"] = img_repair_vehicles(v_data.get("vehicleName", "").lower(), v_data.get("image", ""))
-            
-            # 计算 kpm 和 timeSpent 并转换为 str 类型
-            v_data["kills_per_minute"] = str(round(v_data.get("kills_per_minute", 0.0), 2))
-            v_data["timeSpent"] = str(round(v_data.get("timeIn", 0.0) / 3600, 1)) # 转换为小时
-
             # 创建 Vehicle 对象
             vehicle = Vehicle.from_dict(v_data)
             vehicles_objects.append(vehicle)
@@ -98,11 +85,11 @@ def gt_main_html_builder(raw_data: dict, game: str) -> str:
     # 创建 PlayerStats 对象
     player_stats = PlayerStats.from_gt_dict(processed_data)
     
-    update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"]))
+    update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(processed_data["__update_time"]))
 
     # 整理武器和载具数据，返回实体对象列表
-    weapons_objects = prepare_weapons_data(raw_data, 3, game)
-    vehicles_objects = prepare_vehicles_data(raw_data, 3)
+    weapons_objects = prepare_weapons_data(processed_data, 3, game)
+    vehicles_objects = prepare_vehicles_data(processed_data, 3)
 
     html = MAIN_TEMPLATE.render(
         banner=banner,
@@ -141,10 +128,10 @@ def gt_weapons_html_builder(raw_data: dict, game: str) -> str:
     # 创建 PlayerStats 对象
     player_stats = PlayerStats.from_gt_dict(processed_data)
 
-    update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"]))
+    update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(processed_data["__update_time"]))
 
     # 整理武器数据，返回实体对象列表
-    weapons_objects = prepare_weapons_data(raw_data, 50, game)
+    weapons_objects = prepare_weapons_data(processed_data, 50, game)
 
     html = WEAPONS_TEMPLATE.render(
         banner=banner,
@@ -182,10 +169,10 @@ def gt_vehicles_html_builder(raw_data: dict, game: str) -> str:
     # 创建 PlayerStats 对象
     player_stats = PlayerStats.from_gt_dict(processed_data)
 
-    update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(raw_data["__update_time"]))
+    update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(processed_data["__update_time"]))
 
     # 整理载具数据，返回实体对象列表
-    vehicles_objects = prepare_vehicles_data(raw_data, 50)
+    vehicles_objects = prepare_vehicles_data(processed_data, 50)
 
     html = VEHICLES_TEMPLATE.render(
         banner=banner,
