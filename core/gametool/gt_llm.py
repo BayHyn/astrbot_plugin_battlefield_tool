@@ -72,6 +72,4 @@ def gt_main_llm_builder(raw_data: dict, game: str, bf_prompt: str) -> str:
         for vehicle in vehicles_objects:
             llm_text += vehicle.to_llm_text(game)
 
-    logger.info(llm_text)
-
     return llm_text
