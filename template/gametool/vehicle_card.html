@@ -2,7 +2,7 @@
 <div class="flex items-center grid grid-cols-6 gap-2 p-4 rounded-lg bg-gray-800 {{ bg_opacity_class }}">
     <div class="col-span-2 row-span-2 flex flex-col justify-center items-center">
         <img src="{{ v.image }}" class="object-scale-down" style="height:50px;width:150px;" />
-        {{ v.vehicleName }}
+        {{ v.name }}
         {% if v.kills // 100 > 0 %}
             <div class="flex mt-1 text-yellow-500">
                 ⭐ x {{ v.kills // 100 }}

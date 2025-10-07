@@ -3,7 +3,7 @@
     {% if game != 'bf4' %}
     <div class=" col-span-2 row-span-2 flex flex-col justify-center items-center">
         <img src="{{ w.image }}" class="object-scale-down" style="height:90px;width:200px;" />
-        {{ w.weaponName }}
+        {{ w.name }}
         {% if w.kills // 100 > 0 %}
             <div class="flex mt-1 text-yellow-500">
                 ⭐ x {{ w.kills // 100 }}
@@ -13,7 +13,7 @@
     {% else %}
     <div class=" col-span-2 row-span-2 flex flex-col justify-center items-center">
         <img src="{{ w.image }}" class="object-scale-down" style="height:50px;width:140px;" />
-        {{ w.weaponName }}
+        {{ w.name }}
         {% if w.kills // 100 > 0 %}
             <div class="flex mt-1 text-yellow-500">
                 ⭐ x {{ w.kills // 100 }}
