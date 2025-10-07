@@ -22,6 +22,7 @@ class BattlefieldTool(Star):
     def __init__(self, context: Context, config: AstrBotConfig = None):
         super().__init__(context)
         self.config = config
+        self.wake_prefix = context.get_config().get("wake_prefix")
 
         # 防御性配置处理：如果config为None，使用默认值
         if config is None:
@@ -37,7 +38,8 @@ class BattlefieldTool(Star):
             self.timeout_config = config.get("timeout_config", 15)
             self.img_quality = config.get("img_quality", 90)
             self.ssc_token = config.get("ssc_token", "")
-            self.bf_prompt = config.get("bf_prompt", "请根据以下评判标准和数据从多个方面评价用户的游戏水平，注意要结合人设和上下文，保证对话不冲突，1.K/D(击杀/死亡比):薯薯:小于1，Pro:大于2.5说明： 高KD是Pro哥基础，但单纯KD高可能是架枪蹲人。Pro哥的KD是在高强度突击和救点中打出来的。2.KPM(每分钟击杀):薯薯:小于0.7，Pro:大于1.5说明： 这是衡量你击杀效率的关键指标。KPM低而KD高，大概率是喜欢偷偷地躲起来蹲人，可以适当调侃这些胆小鬼。3.命中率&爆头率这个指标要综合判断，不能直接根据这个参数判断是不是pro哥命中率要根据枪械来看，喷子命中即使超过100%也是正常的，其他种类枪械正常玩家也不会太高爆头率狙击枪超过90%也可以算正常玩家过低的爆头率可能是载具玩家两个指标都超过50%很有可能是挂钩，遇到挂钩直接开喷，谨慎使用，枪械数据量较少时可能是巧合4.急救数神医专属指标5.载具注意击杀和摧毁，击杀特别多但摧毁特别少的那就是捞薯凶手、恐怖铁皮人(只能用来调侃坦克)补充：可以根据玩家使用武器、载具、飞机的偏好分为不同的Pro哥")
+            self.bf_prompt = config.get("bf_prompt",
+                                        "请根据以下评判标准和数据从多个方面评价用户的游戏水平，注意要结合人设和上下文，保证对话不冲突，1.K/D(击杀/死亡比):薯薯:小于1，Pro:大于2.5说明： 高KD是Pro哥基础，但单纯KD高可能是架枪蹲人。Pro哥的KD是在高强度突击和救点中打出来的。2.KPM(每分钟击杀):薯薯:小于0.7，Pro:大于1.5说明： 这是衡量你击杀效率的关键指标。KPM低而KD高，大概率是喜欢偷偷地躲起来蹲人，可以适当调侃这些胆小鬼。3.命中率&爆头率这个指标要综合判断，不能直接根据这个参数判断是不是pro哥命中率要根据枪械来看，喷子命中即使超过100%也是正常的，其他种类枪械正常玩家也不会太高爆头率狙击枪超过90%也可以算正常玩家过低的爆头率可能是载具玩家两个指标都超过50%很有可能是挂钩，遇到挂钩直接开喷，谨慎使用，枪械数据量较少时可能是巧合4.急救数神医专属指标5.载具注意击杀和摧毁，击杀特别多但摧毁特别少的那就是捞薯凶手、恐怖铁皮人(只能用来调侃坦克)补充：可以根据玩家使用武器、载具、飞机的偏好分为不同的Pro哥")
 
         self.bf_data_path = StarTools.get_data_dir("battleField_tool_plugin")
         self.db = BattleFieldDataBase(self.bf_data_path)  # 初始化数据库
@@ -194,10 +196,10 @@ class BattlefieldTool(Star):
             return
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
         if request_data.game in ["bf2042", "bf6"]:
-            async for result in self.api_handlers.handle_btr_game(event, request_data, "stat",True):
+            async for result in self.api_handlers.handle_btr_game(event, request_data, "stat", True):
                 yield result
         else:
-            async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all",True):
+            async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all", True):
                 yield result
 
     @filter.command("bf_init")
@@ -235,49 +237,53 @@ class BattlefieldTool(Star):
     @filter.command("bf_help")
     async def bf_help(self, event: AstrMessageEvent):
         """显示战地插件帮助信息"""
+        prefix = ""
+        if len(self.wake_prefix) > 0:
+            prefix = self.wake_prefix[0]
+
         help_msg = f"""战地风云插件使用帮助：
 1. 账号绑定
-命令: {{唤醒词}}bind [ea_name] 或 {{唤醒词}}绑定 [ea_name]
+命令: {prefix}bind [ea_name] 或 {prefix}绑定 [ea_name]
 参数: ea_name - 您的EA账号名
-示例: {{唤醒词}}bind ExamplePlayer
+示例: {prefix}bind ExamplePlayer
 
 2. 默认查询设置
-命令: {{唤醒词}}bf_init [游戏代号]
+命令: {prefix}bf_init [游戏代号]
 参数: 游戏代号 {", ".join(self.plugin_logic.SUPPORTED_GAMES)}
 注意: 私聊都能使用，群聊中仅bot管理员可用
 
 3. 战绩查询
-命令: {{唤醒词}}stat [ea_name],game=[游戏代号]
+命令: {prefix}stat [ea_name],game=[游戏代号]
 参数:
   ea_name - EA账号名(可选，已绑定则可不填)
   game - 游戏代号(可选)
-示例: {{唤醒词}}stat ExamplePlayer,game=bf1
+示例: {prefix}stat ExamplePlayer,game=bf1
 
 4. 武器统计
-命令: {{唤醒词}}weapons [ea_name],game=[游戏代号] 或 {{唤醒词}}武器 [ea_name],game=[游戏代号]
+命令: {prefix}weapons [ea_name],game=[游戏代号] 或 {prefix}武器 [ea_name],game=[游戏代号]
 参数同上
-示例: {{唤醒词}}weapons ExamplePlayer,game=bfv
+示例: {prefix}weapons ExamplePlayer,game=bfv
 
 5. 载具统计
-命令: {{唤醒词}}vehicles [ea_name],game=[游戏代号] 或 {{唤醒词}}载具 [ea_name],game=[游戏代号]
+命令: {prefix}vehicles [ea_name],game=[游戏代号] 或 {prefix}载具 [ea_name],game=[游戏代号]
 参数同上
-示例: {{唤醒词}}vehicles ExamplePlayer
+示例: {prefix}vehicles ExamplePlayer
 
 6. 专家查询
-命令: {{唤醒词}}soldier [ea_name],game=bf2042 或 {{唤醒词}}专家 [ea_name],game=bf2042
+命令: {prefix}soldier [ea_name],game=bf2042 或 {prefix}专家 [ea_name],game=bf2042
 参数:
   ea_name - EA账号名(可选，已绑定则可不填)
   game - 游戏代号(必填，且必须为bf2042)
-示例: {{唤醒词}}soldier ExamplePlayer,game=bf2042
+示例: {prefix}soldier ExamplePlayer,game=bf2042
 
 7. 服务器查询
-命令: {{唤醒词}}servers [server_name],game=[游戏代号] 或 {{唤醒词}}服务器 [server_name],game=[游戏代号]
+命令: {prefix}servers [server_name],game=[游戏代号] 或 {prefix}服务器 [server_name],game=[游戏代号]
 参数:
   server_name - 服务器名称(必填)
   game - 游戏代号(可选)
-示例: {{唤醒词}}servers 中文服务器,game=bf1
+示例: {prefix}servers 服务器名称,game=bf1
 
-注: 实际使用时不需要输入[]。{{唤醒词}}为唤醒词，以实际情况为准
+注: 实际使用时不需要输入[]。
 """
         yield event.plain_result(help_msg)
 
