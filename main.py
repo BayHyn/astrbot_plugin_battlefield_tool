@@ -190,7 +190,7 @@ class BattlefieldTool(Star):
         logger.debug(f"""{ea_name},{user_id},{game}""")
         request_data = await self.plugin_logic.handle_player_llm_request(event,ea_name,user_id, game)
         if request_data.error_msg:
-            yield event.plain_result(request_data.error_msg)
+            yield request_data.error_msg
             return
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
         if request_data.game in ["bf2042", "bf6"]:
