@@ -72,14 +72,14 @@ class PlayerStats:
 
             human_kd_ratio=data.get("segments")[0].get("stats").get("humanKdRatio").get("displayValue"),
             kills=data.get("segments")[0].get("stats").get("kills").get("value"),
-            kills_percentile=100 - data.get("segments")[0].get("stats").get("kills").get("percentile"),
+            kills_percentile=round(100 - data.get("segments")[0].get("stats").get("kills").get("percentile"), 2),
             assists=data.get("segments")[0].get("stats").get("assists").get("value"),
             deaths=data.get("segments")[0].get("stats").get("deaths").get("value"),
             kills_per_match=data.get("segments")[0].get("stats").get("killsPerMatch").get("displayValue"),
             wl_percentage=data.get("segments")[0].get("stats").get("wlPercentage").get("displayValue"),
 
             wins=data.get("segments")[0].get("stats").get("wins").get("displayValue"),
-            wins_percentile=100 - data.get("segments")[0].get("stats").get("wins").get("percentile"),
+            wins_percentile=round(100 - data.get("segments")[0].get("stats").get("wins").get("percentile"), 2),
             losses=data.get("segments")[0].get("stats").get("losses").get("displayValue"),
             damage_dealt=data.get("segments")[0].get("stats").get("damageDealt").get("displayValue"),
             damage_per_match=data.get("segments")[0].get("stats").get("damagePerMatch").get("value"),
@@ -89,7 +89,7 @@ class PlayerStats:
 
     def to_llm_text(self) -> str:
         """预处理 PlayerStats 方便 llm 理解"""
-        return f"""用户{self.user_name}生涯总共击杀{self.kills}名敌军，击杀死亡比值(K/D):{self.kill_death},平均每分钟击杀(KPM):{self.kills_per_minute}，胜场:{self.wins_percentile}，急救了{self.revives}位士兵，爆头率：{self.headshot_percentage},总游玩时间，{self.hours_played}小时，破坏了{self.vehicles_destroyed}辆载具。"""
+        return f"""用户{self.user_name}生涯总共击杀{self.kills}名敌军，总击杀世界排名{self.kills_percentile}%，击杀死亡比值(K/D):{self.kill_death},平均每分钟击杀(KPM):{self.kills_per_minute}，胜场:{self.wins}，急救了{self.revives}位士兵，爆头率：{self.headshot_percentage},总游玩时间，{self.hours_played}小时，破坏了{self.vehicles_destroyed}辆载具。"""
 
     def __repr__(self):
         return f"PlayerStats(user_name='{self.user_name}', rank={self.level}, ...)"
