@@ -99,10 +99,10 @@
 #### 使用命令查询
 
 <div>
-  <img src="./README/image/示例_bf4.jpg" width="20%" alt="bf4战绩查询效果"/>
   <img src="./README/image/示例_bf1.jpg" width="20%" alt="bf1战绩查询效果"/>
   <img src="./README/image/示例_bfv.jpg" width="20%" alt="bfv战绩查询效果"/>
   <img src="./README/image/示例_bf2042.jpg" width="20%" alt="bf2042战绩查询效果"/>
+  <img src="./README/image/示例_bf6.jpg" width="20%" alt="bf6战绩查询效果"/>
 </div>
 
 #### 让 LLM 调用工具
