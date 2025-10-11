@@ -44,23 +44,32 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
         Returns:
             构建的Html
     """
-    banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF2042_BACKGROUND_COLOR)
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     # 创建对象
-    stat_entity = PlayerStats.from_btr_dict(stat_data)
+    if game == "bf6":
+        stat_entity = PlayerStats.from_bf6_dict(stat_data)
+        weapons_data = sort_list_of_dicts(weapons_data, "stats.kills")
+        vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills")
+        soldier_data = sort_list_of_dicts(soldier_data, "stats.kills")
+
+        # 循环创建武器、载具、专家对象列表
+        weapons_entities = [Weapon.from_bf6_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
+        vehicles_entities = [Vehicle.from_bf6_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]
+        soldiers_entities = [Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF6_BANNER).get(soldiers_entities[0].soldier_name)
+    else:
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+        stat_entity = PlayerStats.from_btr_dict(stat_data)
+        weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
+        vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
+        soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
+        # 循环创建武器、载具、专家对象列表
+        weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
+        vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]
+        soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
     stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
-    logger.info(f"Default avatar URL: {stat_entity.avatar}")
-
-    weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
-    vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
-    soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
-
-    # 循环创建武器、载具、专家对象列表
-    weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
-    vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]
-    soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
 
     html = MAIN_TEMPLATE.render(
         banner=banner,
@@ -94,7 +103,6 @@ def btr_weapons_html_builder(stat_data: dict, weapons_data,vehicles_data, soldie
     # 创建对象
     stat_entity = PlayerStats.from_btr_dict(stat_data)
     stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
-    logger.info(f"Default avatar URL: {stat_entity.avatar}")
 
     weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
 

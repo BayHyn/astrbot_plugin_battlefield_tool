@@ -20,6 +20,13 @@ class ImageUrls:
     BF1_BANNER = "https://s1.ax1x.com/2022/12/15/zoMaxe.jpg"
     BFV_BANNER = "https://s1.ax1x.com/2022/12/14/z54oIs.jpg"
     BF2042_BANNER = "https://s21.ax1x.com/2025/09/25/pV5v1pV.jpg"
+    # BF2042_BANNER = "https://s21.ax1x.com/2025/10/09/pVHKOTe.jpg"
+    BF6_BANNER = {
+        "突击": "https://s21.ax1x.com/2025/10/11/pVbprc9.jpg",
+        "支援": "https://s21.ax1x.com/2025/10/11/pVbp6n1.jpg",
+        "工程": "https://s21.ax1x.com/2025/10/11/pVbpD1J.jpg",
+        "侦察": "https://s21.ax1x.com/2025/10/11/pVbpsXR.jpg",
+    }
 
     # 默认头像
     _DEFAULT_AVATAR_URLS = [
@@ -763,6 +770,7 @@ class ImageUrls:
             "bf1_banner": cls.BF1_BANNER,
             "bfv_banner": cls.BFV_BANNER,
             "bf2042_banner": cls.BF2042_BANNER,
+            "BF6_BANNER": cls.BF6_BANNER,
             "default_avatar": cls.DEFAULT_AVATAR,
             "su_50": cls.SU_50
         }
@@ -775,6 +783,8 @@ class BackgroundColors:
     BF1_BACKGROUND_COLOR = "rgb(139 81 41)"
     BFV_BACKGROUND_COLOR = "rgb(38 62 112)"
     BF2042_BACKGROUND_COLOR = "rgb(1 79 101)"
+    # BF2042_BACKGROUND_COLOR = "rgb(72 97 101)"
+    BF6_BACKGROUND_COLOR = "rgb(101 102 97)"
 
 
 class GameMappings:
@@ -786,6 +796,7 @@ class GameMappings:
         "bf1": ImageUrls.BF1_BANNER,
         "bfv": ImageUrls.BFV_BANNER,
         "bf2042": ImageUrls.BF2042_BANNER,
+        "bf6": ImageUrls.BF6_BANNER,
     }
 
     # 背景色映射
@@ -795,6 +806,7 @@ class GameMappings:
         "bf1": BackgroundColors.BF1_BACKGROUND_COLOR,
         "bfv": BackgroundColors.BFV_BACKGROUND_COLOR,
         "bf2042": BackgroundColors.BF2042_BACKGROUND_COLOR,
+        "bf6": BackgroundColors.BF6_BACKGROUND_COLOR,
     }
 
     # Logo映射
@@ -809,7 +821,7 @@ class GameMappings:
 class TemplateConstants:
     """模板常量类"""
     PARENT_FOLDER = Path(__file__).parent.parent.resolve()
-    
+
     @classmethod
     def get_gt_template_env(cls):
         """获取Jinja2模板环境"""
@@ -821,7 +833,7 @@ class TemplateConstants:
         """获取Jinja2模板环境"""
         template_dir = cls.PARENT_FOLDER / "template/btr"
         return Environment(loader=FileSystemLoader(template_dir))
-    
+
     @classmethod
     def get_templates(cls):
         """获取所有模板"""

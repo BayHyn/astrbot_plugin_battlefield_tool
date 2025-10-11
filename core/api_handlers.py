@@ -41,6 +41,7 @@ class ApiHandlers:
             "weapons": "/player/weapons",
             "vehicles": "/player/vehicles",
             "soldiers": "/player/soldiers",
+            "bf6_stat": "/bf6/stat",
         }
         btr_prop = btr_prop_map.get(data_type)
         if btr_prop is None:
@@ -65,23 +66,33 @@ class ApiHandlers:
                               is_llm: bool = False):
         """处理BTR游戏（bf2042, bf6）的统计数据查询"""
         stat_data = None
-        async for data in self._fetch_btr_data(event, request_data, "stat"):
-            stat_data = data
-
         weapon_data = None
-        if prop in ["stat", "weapons"]:
-            async for data in self._fetch_btr_data(event, request_data, "weapons"):
-                weapon_data = data
-
         vehicle_data = None
-        if prop in ["stat", "vehicles"]:
-            async for data in self._fetch_btr_data(event, request_data, "vehicles"):
-                vehicle_data = data
-
         soldier_data = None
-        if prop in ["stat", "soldiers"]:
-            async for data in self._fetch_btr_data(event, request_data, "soldiers"):
-                soldier_data = data
+
+        if request_data.game == "bf6":
+            async for data in self._fetch_btr_data(event, request_data, "bf6_stat"):
+                data["play_name"] = request_data.ea_name
+                stat_data = data
+                weapon_data = data.get("matches")[0].get("segments")[0].get("metadata").get("weapons")
+                vehicle_data = data.get("matches")[0].get("segments")[0].get("metadata").get("vehicles")
+                soldier_data = data.get("matches")[0].get("segments")[0].get("metadata").get("kits")
+
+        else:
+            async for data in self._fetch_btr_data(event, request_data, "stat"):
+                stat_data = data
+
+            if prop in ["stat", "weapons"]:
+                async for data in self._fetch_btr_data(event, request_data, "weapons"):
+                    weapon_data = data
+
+            if prop in ["stat", "vehicles"]:
+                async for data in self._fetch_btr_data(event, request_data, "vehicles"):
+                    vehicle_data = data
+
+            if prop in ["stat", "soldiers"]:
+                async for data in self._fetch_btr_data(event, request_data, "soldiers"):
+                    soldier_data = data
 
         async for result in self.plugin_logic.handle_btr_response(event, prop, request_data.game,
                                                                   self.html_render, stat_data, weapon_data,

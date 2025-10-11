@@ -32,10 +32,18 @@
         <div class="text-1xl text-yellow-400">使用时间</div>
         <div class="text-2xl font-bold font-mono">{{ weapon_entity.time_played }}h</div>
     </div>
+    {% if game == 'bf6' %}
+    <div>
+        <div class="text-1xl text-yellow-400">身体击杀</div>
+        <div class="text-2xl font-bold font-mono">{{ weapon_entity.body_kills }}</div>
+    </div>
+    {% endif %}
+    {% if game == 'bf2042' %}
     <div>
         <div class="text-1xl text-yellow-400">腰射击杀</div>
         <div class="text-2xl font-bold font-mono">{{ weapon_entity.hipfire_kills }}</div>
     </div>
+    {% endif %}
     <div>
         <div class="text-1xl text-yellow-400">爆头击杀</div>
         <div class="text-2xl font-bold font-mono">{{ weapon_entity.headshot_kills }}</div>
