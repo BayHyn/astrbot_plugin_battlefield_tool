@@ -49,8 +49,8 @@ async def gt_request_api(game, prop="stats", params=None, timeout=15, session=No
                 error_dict = await response.json()
                 error_dict["code"] = response.status
                 error_msg = (
-                    f"玩家 '{ea_name}' 未找到或游戏代号错误\n"
-                    f"• 确认ID: {ea_name}\n"
+                    f"玩家 '{params['player_name']}' 未找到或游戏代号错误\n"
+                    f"• 确认ID: {params['player_name']}\n"
                     f"• 游戏代号: {game}\n"
                     f"• 可用代号: {', '.join(SUPPORTED_GAMES)}"
                     f"• 原始错误: {error_dict}"

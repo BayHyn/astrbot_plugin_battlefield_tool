@@ -47,12 +47,17 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF2042_BACKGROUND_COLOR)
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
+    logger.info(weapons_data)
+    logger.info(vehicles_data)
+
+    weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
+    vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
+    soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
+
+
     # 创建对象
     if game == "bf6":
         stat_entity = PlayerStats.from_bf6_dict(stat_data)
-        weapons_data = sort_list_of_dicts(weapons_data, "stats.kills")
-        vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills")
-        soldier_data = sort_list_of_dicts(soldier_data, "stats.kills")
 
         # 循环创建武器、载具、专家对象列表
         weapons_entities = [Weapon.from_bf6_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
@@ -62,9 +67,7 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
     else:
         banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
         stat_entity = PlayerStats.from_btr_dict(stat_data)
-        weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
-        vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
-        soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
+
         # 循环创建武器、载具、专家对象列表
         weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
         vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]

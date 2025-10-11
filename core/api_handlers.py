@@ -66,17 +66,26 @@ class ApiHandlers:
                               is_llm: bool = False):
         """处理BTR游戏（bf2042, bf6）的统计数据查询"""
         stat_data = None
-        weapon_data = None
-        vehicle_data = None
-        soldier_data = None
+        weapon_data = []
+        vehicle_data = []
+        soldier_data = []
 
         if request_data.game == "bf6":
             async for data in self._fetch_btr_data(event, request_data, "bf6_stat"):
-                data["play_name"] = request_data.ea_name
                 stat_data = data
-                weapon_data = data.get("matches")[0].get("segments")[0].get("metadata").get("weapons")
-                vehicle_data = data.get("matches")[0].get("segments")[0].get("metadata").get("vehicles")
-                soldier_data = data.get("matches")[0].get("segments")[0].get("metadata").get("kits")
+                result_data = data.get("segments")
+                for result in result_data:
+                    if result["type"] == "kit":
+                        soldier_data.append(result)
+                        continue
+                    if result["type"] == "weapon":
+                        weapon_data.append(result)
+                        continue
+                    if result["type"] == "vehicle":
+                        vehicle_data.append(result)
+                        continue
+            logger.info(weapon_data)
+            logger.info(vehicle_data)
 
         else:
             async for data in self._fetch_btr_data(event, request_data, "stat"):
