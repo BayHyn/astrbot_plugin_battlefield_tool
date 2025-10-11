@@ -47,9 +47,6 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF2042_BACKGROUND_COLOR)
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
-    logger.info(weapons_data)
-    logger.info(vehicles_data)
-
     weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
     vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
     soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")

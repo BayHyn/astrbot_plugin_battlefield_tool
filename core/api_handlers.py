@@ -84,8 +84,6 @@ class ApiHandlers:
                     if result["type"] == "vehicle":
                         vehicle_data.append(result)
                         continue
-            logger.info(weapon_data)
-            logger.info(vehicle_data)
 
         else:
             async for data in self._fetch_btr_data(event, request_data, "stat"):
