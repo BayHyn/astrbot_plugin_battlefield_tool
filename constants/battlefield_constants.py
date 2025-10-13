@@ -20,7 +20,6 @@ class ImageUrls:
     BF1_BANNER = "https://s1.ax1x.com/2022/12/15/zoMaxe.jpg"
     BFV_BANNER = "https://s1.ax1x.com/2022/12/14/z54oIs.jpg"
     BF2042_BANNER = "https://s21.ax1x.com/2025/09/25/pV5v1pV.jpg"
-    # BF2042_BANNER = "https://s21.ax1x.com/2025/10/09/pVHKOTe.jpg"
     BF6_BANNER = {
         "突击": "https://s21.ax1x.com/2025/10/11/pVbprc9.jpg",
         "支援": "https://s21.ax1x.com/2025/10/11/pVbp6n1.jpg",

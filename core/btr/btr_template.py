@@ -32,14 +32,14 @@ def sort_list_of_dicts(list_of_dicts, key):
     return sorted(filtered_list, key=lambda k: get_nested_value(k, key), reverse=True)
 
 
-def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_data, game: str) -> str:
+async def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_data, game: str) -> str:
     """
         构建主要html
         Args:
             stat_data: 查询到的统计数据字典
             weapons_data: 查询到的武器数据字典
             vehicles_data: 查询到的载具数据字典
-            soldier_data: 查询到的专家数据字典
+            soldier_data: 查询到的士兵数据字典
             game: 所查询的游戏
         Returns:
             构建的Html
@@ -51,21 +51,20 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
     vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
     soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
 
-
-    # 创建对象
     if game == "bf6":
-        stat_entity = PlayerStats.from_bf6_dict(stat_data)
+        stat_entity = await PlayerStats.from_bf6_dict(stat_data)
 
-        # 循环创建武器、载具、专家对象列表
-        weapons_entities = [Weapon.from_bf6_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
-        vehicles_entities = [Vehicle.from_bf6_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]
-        soldiers_entities = [Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
+        # 循环创建武器、载具、士兵对象列表
+        weapons_entities = [await Weapon.from_bf6_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
+        vehicles_entities = [await Vehicle.from_bf6_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]
+        soldiers_entities = [await Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
         banner = GameMappings.BANNERS.get(game, ImageUrls.BF6_BANNER).get(soldiers_entities[0].soldier_name)
+
     else:
         banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
         stat_entity = PlayerStats.from_btr_dict(stat_data)
 
-        # 循环创建武器、载具、专家对象列表
+        # 循环创建武器、载具、士兵对象列表
         weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:3]]
         vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:3]]
         soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
@@ -84,30 +83,39 @@ def btr_main_html_builder(stat_data: dict, weapons_data, vehicles_data, soldier_
     return html
 
 
-def btr_weapons_html_builder(stat_data: dict, weapons_data,vehicles_data, soldier_data, game: str) -> str:
+async def btr_weapons_html_builder(stat_data: dict, weapons_data,vehicles_data, soldier_data, game: str) -> str:
     """
         构建武器html
         Args:
             stat_data: 查询到的统计数据字典
             weapons_data: 查询到的武器数据字典
             vehicles_data: 查询到的载具数据字典
-            soldier_data: 查询到的专家数据字典
+            soldier_data: 查询到的士兵数据字典
             game: 所查询的游戏
         Returns:
             构建的Html
     """
-    banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+    #排序
+    weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
+    soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF2042_BACKGROUND_COLOR)
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     # 创建对象
-    stat_entity = PlayerStats.from_btr_dict(stat_data)
+    if game == "bf6":
+        stat_entity = await PlayerStats.from_bf6_dict(stat_data)
+
+        # 循环创建对象列表
+        weapons_entities = [await Weapon.from_bf6_dict(weapon_dict) for weapon_dict in weapons_data]
+        soldiers_entities = [await Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF6_BANNER).get(soldiers_entities[0].soldier_name)
+    else:
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+        stat_entity = PlayerStats.from_btr_dict(stat_data)
+
+        # 循环创建对象列表
+        weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data]
     stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
-
-    weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
-
-    # 循环创建武器、载具、专家对象列表
-    weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data]
 
     html = WEAPONS_TEMPLATE.render(
         banner=banner,
@@ -120,31 +128,39 @@ def btr_weapons_html_builder(stat_data: dict, weapons_data,vehicles_data, soldie
     return html
 
 
-def btr_vehicles_html_builder(stat_data: dict,weapons_data, vehicles_data,soldier_data, game: str) -> str:
+async def btr_vehicles_html_builder(stat_data: dict,weapons_data, vehicles_data,soldier_data, game: str) -> str:
     """
         构建载具html
         Args:
             stat_data: 查询到的统计数据字典
             weapons_data: 查询到的武器数据字典
             vehicles_data: 查询到的载具数据字典
-            soldier_data: 查询到的专家数据字典
+            soldier_data: 查询到的士兵数据字典
             game: 所查询的游戏
         Returns:
             构建的Html
     """
-    banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+    # 创建对象
+
+    vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
+    soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF2042_BACKGROUND_COLOR)
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     # 创建对象
-    stat_entity = PlayerStats.from_btr_dict(stat_data)
+    if game == "bf6":
+        stat_entity = await PlayerStats.from_bf6_dict(stat_data)
+
+        # 循环创建对象列表
+        vehicles_entities = [await Vehicle.from_bf6_dict(vehicle_dict) for vehicle_dict in vehicles_data]
+        soldiers_entities = [await Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF6_BANNER).get(soldiers_entities[0].soldier_name)
+    else:
+        stat_entity = PlayerStats.from_btr_dict(stat_data)
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+        # 循环创建对象列表
+        vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data]
     stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
-    logger.info(f"Default avatar URL: {stat_entity.avatar}")
-
-    vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
-
-    # 循环创建武器、载具、专家对象列表
-    vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data]
 
     html = VEHICLES_TEMPLATE.render(
         banner=banner,
@@ -157,31 +173,34 @@ def btr_vehicles_html_builder(stat_data: dict,weapons_data, vehicles_data,soldie
     return html
 
 
-def btr_soldier_html_builder(stat_data: dict,weapons_data, vehicles_data, soldier_data, game: str) -> str:
+async def btr_soldier_html_builder(stat_data: dict,weapons_data, vehicles_data, soldier_data, game: str) -> str:
     """
-        构建专家html
+        构建士兵html
         Args:
             stat_data: 查询到的统计数据字典
             weapons_data: 查询到的武器数据字典
             vehicles_data: 查询到的载具数据字典
-            soldier_data: 查询到的专家数据字典
+            soldier_data: 查询到的士兵数据字典
             game: 所查询的游戏
         Returns:
             构建的Html
     """
-    banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+    soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
     background_color = GameMappings.BACKGROUND_COLORS.get(game, BackgroundColors.BF2042_BACKGROUND_COLOR)
     update_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    if game == "bf6":
+        stat_entity = await PlayerStats.from_bf6_dict(stat_data)
 
-    # 创建对象
-    stat_entity = PlayerStats.from_btr_dict(stat_data)
+        # 循环创建对象列表
+        soldiers_entities = [await Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data]
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF6_BANNER).get(soldiers_entities[0].soldier_name)
+    else:
+        banner = GameMappings.BANNERS.get(game, ImageUrls.BF2042_BANNER)
+        stat_entity = PlayerStats.from_btr_dict(stat_data)
+        # 循环创建士兵对象列表
+        soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data]
+
     stat_entity.avatar = ImageUrls().DEFAULT_AVATAR
-    logger.info(f"Default avatar URL: {stat_entity.avatar}")
-
-    soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
-
-    # 循环创建专家对象列表
-    soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data]
 
     html = SOLDIERS_TEMPLATE.render(
         banner=banner,

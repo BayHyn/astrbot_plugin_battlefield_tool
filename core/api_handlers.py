@@ -48,9 +48,9 @@ class ApiHandlers:
             yield event.plain_result(f"不支持的游戏类型 '{data_type}' 用于bf6/bf2042查询。")
             return
 
-        # 专家查询仅限bf2042
+        # 士兵查询仅限bf2042
         if data_type == "soldier" and request_data.game != "bf2042":
-            yield event.plain_result("专家查询目前仅支持战地2042。")
+            yield event.plain_result("士兵查询目前仅支持战地2042。")
             return
 
         api_data = await btr_request_api(
@@ -124,3 +124,20 @@ class ApiHandlers:
             session=session,
         )
         return servers_data
+
+    async def check_ea_name(self, request_data: PlayerDataRequest, timeout_config: int, session):
+        """检查ea_name正确性，并返回pid"""
+        stats_data = await gt_request_api(
+            "bfv",
+            "stats",
+            {
+                "name": request_data.ea_name,
+                "platform": self.plugin_logic.default_platform,
+            },
+            timeout_config,
+            session=session,
+        )
+        if stats_data is None:
+            return stats_data.get("userId")
+        else:
+            return None

@@ -1,5 +1,7 @@
 from typing import List, Optional, Dict, Any
 
+from ..core.image_util import get_image_base64
+
 
 class PlayerStats:
     """
@@ -10,6 +12,7 @@ class PlayerStats:
                  avatar: str,  # 玩家头像URL
                  user_name: str,  # 玩家用户名
                  level: str,  # 玩家等级
+                 rank_img: str,#等级图片
                  hours_played: str,  # 游戏时间（小时）
 
                  dmg_per_min: str,  # 每分钟伤害
@@ -38,6 +41,7 @@ class PlayerStats:
         self.avatar = avatar
         self.user_name = user_name
         self.level = level
+        self.rank_img = rank_img
         self.hours_played = hours_played
         self.dmg_per_min = dmg_per_min
         self.kill_death = kill_death
@@ -67,6 +71,7 @@ class PlayerStats:
             avatar=data.get("avatar", ""),
             user_name=data.get("platformInfo").get("platformUserHandle", "--"),
             level=data.get("segments")[0].get("stats").get("level").get("displayValue"),
+            rank_img="",
             hours_played=str(round(data.get("segments")[0].get("stats").get("timePlayed").get("value") / 3600, 1)),
 
             dmg_per_min=data.get("segments")[0].get("stats").get("dmgPerMin").get("displayValue"),
@@ -93,11 +98,28 @@ class PlayerStats:
             score =""
         )
     @classmethod
-    def from_bf6_dict(cls, data: Dict[str, Any]):
+    async def from_bf6_dict(cls, data: Dict[str, Any]):
+        # 格式化分数
+        score = data.get("segments")[0].get("stats").get("score").get("value")
+        if score >1000000000:
+            score = str(round(score/1000000000,1))+"G"
+        elif score >1000000:
+            score = str(round(score/1000000,1))+"M"
+        elif score >1000:
+            score = str(round(score/1000,1))+"K"
+
+        # 获取等级图片
+        level = data.get("segments")[0].get("stats").get("careerPlayerRank").get("displayValue")
+        rank_img = PlayerStats.get_rank_image(level)
+        image = ""
+        if rank_img:
+            image = await get_image_base64(rank_img)
+
         return cls(
             avatar=data.get("avatar", ""),
             user_name=data.get("platformInfo").get("platformUserHandle", "--"),
-            level=data.get("segments")[0].get("stats").get("careerPlayerRank").get("displayValue"),
+            level=level,
+            rank_img=image,
             hours_played=str(round(data.get("segments")[0].get("stats").get("timePlayed").get("value") / 3600, 1)),
 
             dmg_per_min=data.get("segments")[0].get("stats").get("damagePerMinute").get("displayValue"),
@@ -121,9 +143,34 @@ class PlayerStats:
             revives=data.get("segments")[0].get("stats").get("revives").get("value"),
             vehicles_destroyed=data.get("segments")[0].get("stats").get("vehiclesDestroyed").get("value"),
             score_per_minute=data.get("segments")[0].get("stats").get("scorePerMinute").get("value"),
-            score=data.get("segments")[0].get("stats").get("score").get("value"),
+            score=score,
 
         )
+    @staticmethod
+    def get_rank_image(level):
+        int_level = int(level)
+        formatted_level = ""
+
+        if int_level <= 50:
+            formatted_level = f"{int_level:03d}"
+        elif 50 < int_level <= 90:
+            # 5级一档，例如 56 -> 055
+            formatted_level = f"{int_level // 5 * 5:03d}"
+        elif 90 < int_level <= 490:
+            # 10级一档，例如 123 -> 120
+            formatted_level = f"{int_level // 10 * 10:03d}"
+        elif 490 < int_level <= 5000:
+            # 500级一档，例如 700 -> 500, 1200 -> 1000, 3200 -> 3000
+            # 确保等级不会超过 5000
+            calculated_level = min(int_level // 500 * 500, 5000)
+            formatted_level = f"{calculated_level:03d}"
+        else:
+            # 超过 5000 级的，统一使用 5000 级的图片
+            formatted_level = "5000"
+
+        print(formatted_level)
+
+        return f"http://tutu.shooting-star-c.top/i/2025/10/13/t_ui_rank_{formatted_level}_lg.png"
 
     def to_llm_text(self) -> str:
         """预处理 PlayerStats 方便 llm 理解"""
@@ -139,6 +186,8 @@ class Weapon:
     def __init__(self,
                  weapon_name: str,  # 武器名字
                  category: str,  # 类别
+                 image_url: str,  # 图标url
+                 image: str,  # 图标base64s
                  kills: int,  # 击杀
                  kills_per_minute: str,  # kp
                  shots_accuracy: str,  # 命中率
@@ -157,6 +206,8 @@ class Weapon:
                  ):
         self.weapon_name = weapon_name
         self.category = category
+        self.image_url = image_url
+        self.image = image
         self.kills = kills
         self.kills_per_minute = kills_per_minute
         self.shots_accuracy = shots_accuracy
@@ -179,6 +230,8 @@ class Weapon:
         return cls(
             weapon_name=data.get("metadata").get("name", "--"),
             category=Weapon._get_category(data.get("metadata").get("category", "--")),
+            image_url="",
+            image="",
             kills=data.get("stats").get("kills").get("value", 0),
             kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue", "--"),
             shots_accuracy=data.get("stats").get("shotsAccuracy").get("displayValue", "--"),
@@ -196,10 +249,16 @@ class Weapon:
             deployments=data.get("stats").get("deployments").get("displayValue", "--"),
         )
     @classmethod
-    def from_bf6_dict(cls, data: Dict[str, Any]):
+    async def from_bf6_dict(cls, data: Dict[str, Any]):
+        image_url=Weapon._get_category(data.get("metadata").get("imageUrl", ""))
+        image = ""
+        if image_url:
+            image = await get_image_base64(image_url)
         return cls(
             weapon_name=data.get("metadata").get("name", "--"),
-            category=Weapon._get_category(data.get("metadata").get("category", "--")),
+            category=Weapon._get_category(data.get("metadata").get("categoryName", "--")),
+            image_url=image_url,
+            image=image,
             kills=data.get("stats").get("kills").get("value",0),
             kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue","--"),
             shots_accuracy=data.get("stats").get("shotsAccuracy").get("displayValue","--"),
@@ -222,14 +281,17 @@ class Weapon:
     @staticmethod
     def _get_category(category_name):
         category_map = {
-            "LMG": "机枪",
+            "LMG": "轻机枪",
             "Assault Rifles": "突击步枪",
+            "Sniper Rifles": "狙击步枪",
+            "Carbines": "卡宾枪",
             "PDW": "冲锋枪",
             "DMR": "精确射手步枪",
             "Bolt Action": "狙击步枪",
             "Lever-Action Carbines": "多功能",
-
-            "SMG": "SMG__",
+            "Shotguns": "霰弹枪",
+            "Pistols": "手枪",
+            "SMG": "冲锋枪",
         }
         return category_map.get(category_name, category_name)
 
@@ -245,6 +307,8 @@ class Vehicle:
     def __init__(self,
                  vehicle_name: str,  # 武器名字
                  category: str,  # 类别
+                 image_url: str,  # 图标url
+                 image: str,  # 图标base64s
                  kills: int,  # 击杀
                  kills_per_minute: str,  # kp
                  time_played: str,  # 使用时间
@@ -264,6 +328,8 @@ class Vehicle:
                  ):
         self.vehicle_name = vehicle_name
         self.category = category
+        self.image_url = image_url
+        self.image = image
         self.kills = kills
         self.kills_per_minute = kills_per_minute
         self.time_played = time_played
@@ -287,6 +353,8 @@ class Vehicle:
         return cls(
             vehicle_name=Vehicle._get_vehicle_category(data.get("metadata").get("name", "--")),
             category=Vehicle._get_category(data.get("metadata").get("category", "--")),
+            image_url="",
+            image="",
             kills=data.get("stats").get("kills").get("value", 0),
             kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue", "--"),
             time_played=str(round(data.get("stats").get("timePlayed").get("value", 0) / 3600, 1)),
@@ -306,10 +374,16 @@ class Vehicle:
         )
 
     @classmethod
-    def from_bf6_dict(cls, data: Dict[str, Any]):
+    async def from_bf6_dict(cls, data: Dict[str, Any]):
+        image_url=data.get("metadata").get("imageUrl", "")
+        image = ""
+        if image_url:
+            image = await get_image_base64(image_url)
         return cls(
             vehicle_name=Vehicle._get_vehicle_category(data.get("metadata").get("name", "--")),
-            category=Vehicle._get_category(data.get("metadata").get("category", "--")),
+            category=Vehicle._get_category(data.get("metadata").get("categoryName", "--")),
+            image_url=image_url,
+            image=image,
             kills=data.get("stats").get("kills").get("value",0),
             kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue","--"),
             time_played=str(round(data.get("stats").get("timePlayed").get("value",0) / 3600, 1)),
@@ -339,6 +413,18 @@ class Vehicle:
             "Plane": "空载",
             "Helicopter": "旋翼",
             "Stationary": "定点武器",
+
+            "Surface - Light Ground Transport": "轻型地面运输",
+            "Surface - Main Battle Tank": "主战坦克",
+            "Surface - Infantry Fighting Vehicle": "步兵战车",
+            "Surface - Mobile Anti-Air": "防空",
+            "Surface - Transport": "运输",
+            "Aircraft - Attack Helicopter": "攻击直升机",
+            "Aircraft - Attack Bomber": "对地攻击机",
+            "Aircraft - Fighter Jet": "空优",
+            "Aircraft - Transport Helicopter": "运输机",
+
+
         }
         return category_map.get(category_name, category_name)
 
@@ -378,12 +464,13 @@ class Vehicle:
 
 
 class Soldier:
-    """专家类"""
+    """士兵类"""
 
     def __init__(self,
-                 soldier_name: str,  # 专家名
+                 soldier_name: str,  # 士兵名
                  category: str,  # 类型
-                 image_url: str,  # 专家照片
+                 image_url: str,  # 图标url
+                 image: str,  # 图标base64s
                  kills: int,  # 击杀
                  kd_ratio: str,  # kd
                  kills_per_minute: str,  # kp
@@ -396,6 +483,7 @@ class Soldier:
         self.soldier_name = soldier_name
         self.category = category
         self.image_url = image_url
+        self.image = image
         self.kills = kills
         self.kd_ratio = kd_ratio
         self.kills_per_minute = kills_per_minute
@@ -411,7 +499,8 @@ class Soldier:
         return cls(
             soldier_name=Soldier._get_soldier_name(data.get("metadata").get("name", "--")),
             category=Soldier._get_category(data.get("metadata").get("category", "--")),
-            image_url=data.get("metadata").get("imageUrl", "--"),
+            image_url="",
+            image="",
             kills=data.get("stats").get("kills").get("value", 0),
             kd_ratio=data.get("stats").get("kdRatio").get("displayValue", "--"),
             kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue", "--"),
@@ -422,11 +511,16 @@ class Soldier:
             deaths=data.get("stats").get("deaths").get("displayValue", "--"),
         )
     @classmethod
-    def from_bf6_dict(cls, data: Dict[str, Any]):
+    async def from_bf6_dict(cls, data: Dict[str, Any]):
+        image_url=data.get("metadata").get("imageUrl", "")
+        image = ""
+        if image_url:
+            image = await get_image_base64(image_url)
         return cls(
             soldier_name=Soldier._get_category(data.get("metadata").get("name", "--")),
             category="",
-            image_url="",
+            image_url=image_url,
+            image=image,
             kills=data.get("stats").get("kills").get("value",0),
             kd_ratio=data.get("stats").get("kdRatio").get("displayValue","--"),
             kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue","--"),
@@ -468,7 +562,7 @@ class Soldier:
 
     def to_llm_text(self) -> str:
         """预处理 Soldier 方便 llm 理解"""
-        return f"""最擅长使用{self.category}兵专家{self.soldier_name},{self.time_played}小时中击杀了{self.kills}名敌军,平均每分钟击杀{self.kills_per_minute},击杀死亡比值{self.kd_ratio}。"""
+        return f"""最擅长使用{self.category}兵士兵{self.soldier_name},{self.time_played}小时中击杀了{self.kills}名敌军,平均每分钟击杀{self.kills_per_minute},击杀死亡比值{self.kd_ratio}。"""
 
     def __repr__(self):
         return f"Soldier(soldier_name='{self.soldier_name}', category='{self.category}', kills={self.kills})"

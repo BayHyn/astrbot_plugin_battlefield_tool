@@ -112,17 +112,17 @@ class BattlefieldTool(Star):
             async for result in self.api_handlers.fetch_gt_data(event, request_data, "vehicles", "vehicles"):
                 yield event.image_result(result)
 
-    @filter.command("soldiers", alias=["专家"])
+    @filter.command("soldiers", alias=["士兵"])
     async def bf_soldier(self, event: AstrMessageEvent):
-        """查询专家数据 (仅限bf2042)"""
-        request_data = await self.plugin_logic.handle_player_data_request(event, ["soldiers", "专家"])
+        """查询士兵数据 (仅限bf2042,bf6)"""
+        request_data = await self.plugin_logic.handle_player_data_request(event, ["soldiers", "士兵"])
 
         if request_data.error_msg:
             yield event.plain_result(request_data.error_msg)
             return
 
-        if request_data.game != 'bf2042':
-            yield event.plain_result("专家查询目前仅支持战地2042。")
+        if request_data.game not in ['bf2042','bf6']:
+            yield event.plain_result("士兵查询目前仅支持战地2042、bf6。")
             return
 
         logger.info(f"玩家id:{request_data.ea_name}，所查询游戏:{request_data.game}")
@@ -269,11 +269,11 @@ class BattlefieldTool(Star):
 参数同上
 示例: {prefix}vehicles ExamplePlayer
 
-6. 专家查询
-命令: {prefix}soldier [ea_name],game=bf2042 或 {prefix}专家 [ea_name],game=bf2042
+6. 士兵查询
+命令: {prefix}soldier [ea_name],game=bf2042 或 {prefix}士兵 [ea_name],game=bf2042
 参数:
   ea_name - EA账号名(可选，已绑定则可不填)
-  game - 游戏代号(必填，且必须为bf2042)
+  game - 游戏代号(必填，且必须为bf2042、bf6)
 示例: {prefix}soldier ExamplePlayer,game=bf2042
 
 7. 服务器查询

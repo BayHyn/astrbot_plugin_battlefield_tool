@@ -28,7 +28,7 @@ def btr_main_llm_builder(stat_data: dict, weapons_data, vehicles_data, soldier_d
             stat_data: 查询到的统计数据字典
             weapons_data: 查询到的武器数据字典
             vehicles_data: 查询到的载具数据字典
-            soldier_data: 查询到的专家数据字典
+            soldier_data: 查询到的士兵数据字典
             game: 所查询的游戏
         Returns:
             构建的Html
@@ -41,7 +41,7 @@ def btr_main_llm_builder(stat_data: dict, weapons_data, vehicles_data, soldier_d
     vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
     soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
 
-    # 循环创建武器、载具、专家对象列表
+    # 循环创建武器、载具、士兵对象列表
     weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:2]]
     vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:2]]
     soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data[:1]]

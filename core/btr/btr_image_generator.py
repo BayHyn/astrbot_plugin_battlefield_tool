@@ -23,11 +23,11 @@ class BtrImageGenerator:
             stat_data: 查询到的统计数据等
             weapon_data: 查询到的武器数据等
             vehicle_data: 查询到的载具数据等
-            soldier_data: 查询到的专家数据等
+            soldier_data: 查询到的士兵数据等
         Returns:
             返回生成的图片URL
         """
-        html = html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
+        html = await html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
         url = await html_render_func(
             html,
             {},
@@ -50,11 +50,11 @@ class BtrImageGenerator:
             stat_data: 查询到的统计数据等
             weapon_data: 查询到的武器数据等
             vehicle_data: 查询到的载具数据等
-            soldier_data: 查询到的专家数据等
+            soldier_data: 查询到的士兵数据等
         Returns:
             返回生成的图片URL
         """
-        html = html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
+        html = await html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
         url = await html_render_func(
             html,
             {},
@@ -77,11 +77,11 @@ class BtrImageGenerator:
             stat_data: 查询到的统计数据等
             weapon_data: 查询到的武器数据等
             vehicle_data: 查询到的载具数据等
-            soldier_data: 查询到的专家数据等
+            soldier_data: 查询到的士兵数据等
         Returns:
             返回生成的图片URL
         """
-        html = html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
+        html = await html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
         url = await html_render_func(
             html,
             {},
@@ -105,11 +105,11 @@ class BtrImageGenerator:
             stat_data: 查询到的统计数据等
             weapon_data: 查询到的武器数据等
             vehicle_data: 查询到的载具数据等
-            soldier_data: 查询到的专家数据等
+            soldier_data: 查询到的士兵数据等
         Returns:
             返回生成的图片URL
         """
-        html = html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
+        html = await html_builder_func(stat_data,weapon_data,vehicle_data,soldier_data, game)
         url = await html_render_func(
             html,
             {},
