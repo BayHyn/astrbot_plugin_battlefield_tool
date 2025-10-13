@@ -72,7 +72,7 @@ class BattlefieldTool(Star):
 
         if request_data.game in ["bf2042", "bf6"]:
             async for result in self.api_handlers.handle_btr_game(event, request_data, "stat"):
-                if not "https://campux.shooting-star-c.top" in result:
+                if not "http" in result:
                     yield event.plain_result(result)
                 else:
                     yield event.image_result(result)
