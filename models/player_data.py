@@ -6,6 +6,7 @@ class PlayerDataRequest:
     message_str: str
     lang: str
     qq_id: str
+    pider: str
     ea_name: Union[str, None]
     game: Union[str, None]
     server_name: Union[str, None]

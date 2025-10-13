@@ -55,7 +55,7 @@ class ApiHandlers:
 
         api_data = await btr_request_api(
             btr_prop,
-            {"player_name": request_data.ea_name, "game": request_data.game},
+            {"player_name": request_data.ea_name, "game": request_data.game,"pider": request_data.pider},
             self.timeout_config,
             self.ssc_token,
             session=self._session,
@@ -73,17 +73,26 @@ class ApiHandlers:
         if request_data.game == "bf6":
             async for data in self._fetch_btr_data(event, request_data, "bf6_stat"):
                 stat_data = data
-                result_data = data.get("segments")
-                for result in result_data:
-                    if result["type"] == "kit":
-                        soldier_data.append(result)
-                        continue
-                    if result["type"] == "weapon":
-                        weapon_data.append(result)
-                        continue
-                    if result["type"] == "vehicle":
-                        vehicle_data.append(result)
-                        continue
+                if isinstance(data, list):
+                    user_info_list = []
+                    for user in data:
+                        handle = user.get("platformUserHandle", "未知")
+                        identifier = user.get("platformUserIdentifier", "未知")
+                        user_info_list.append(f"用户名: {handle}, platformUserIdentifier: {identifier}")
+                    yield "查询到多个用户：\n" + "\n".join(user_info_list) + "\n请先使用 stat pider=pider 查询各个战绩确认哪个是您，然后使用bind pider=pider绑定您的pid"
+                    return
+                else:
+                    result_data = data.get("segments")
+                    for result in result_data:
+                        if result["type"] == "kit":
+                            soldier_data.append(result)
+                            continue
+                        if result["type"] == "weapon":
+                            weapon_data.append(result)
+                            continue
+                        if result["type"] == "vehicle":
+                            vehicle_data.append(result)
+                            continue
 
         else:
             async for data in self._fetch_btr_data(event, request_data, "stat"):

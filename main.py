@@ -72,7 +72,10 @@ class BattlefieldTool(Star):
 
         if request_data.game in ["bf2042", "bf6"]:
             async for result in self.api_handlers.handle_btr_game(event, request_data, "stat"):
-                yield event.image_result(result)
+                if not "https://campux.shooting-star-c.top" in result:
+                    yield event.plain_result(result)
+                else:
+                    yield event.image_result(result)
         else:
             async for result in self.api_handlers.fetch_gt_data(event, request_data, "stat", "all"):
                 yield event.image_result(result)
@@ -164,7 +167,7 @@ class BattlefieldTool(Star):
             yield event.plain_result(request_data.error_msg)
             return
         # 持久化绑定数据
-        msg = await self.db_service.upsert_user_bind(request_data.qq_id, request_data.ea_name, "")
+        msg = await self.db_service.upsert_user_bind(request_data.qq_id, request_data.ea_name, request_data.pider)
         yield event.plain_result(msg)
 
     @filter.llm_tool(name="bf_tool_bind")

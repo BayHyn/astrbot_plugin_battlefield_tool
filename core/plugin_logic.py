@@ -43,8 +43,11 @@ class BattlefieldPluginLogic:
         self.bf_prompt = bf_prompt
         self.SUPPORTED_GAMES = ["bf4", "bf1", "bfv", "bf6", "bf2042"]
         self.STAT_PATTERN = re.compile(
-            r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?$"
+            r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?(?:[，,]?pider=([\w\-+.]+))?$"
         )
+        # self.STAT_PATTERN = re.compile(
+        #     r"^([\w-]*)(?:[，,]?game=([\w\-+.]+))?$"
+        # )
         self.gt_image_generator = GtImageGenerator(img_quality)
         self.btr_image_generator = BtrImageGenerator(img_quality)
 
@@ -73,6 +76,8 @@ class BattlefieldPluginLogic:
 
         if game == 'bf5':
             game = 'bfv'
+        if game == '2042':
+            game = 'bf2042'
 
         if game not in self.SUPPORTED_GAMES:
             error_msg = (
@@ -84,13 +89,14 @@ class BattlefieldPluginLogic:
         return game, error_msg
 
     async def _resolve_ea_name(self, ea_name_input: Union[str, None], qq_id: str) -> tuple[
-        Union[str, None], Union[str, None]]:
+        Union[str, None],Union[str, None], Union[str, None]]:
         """
         解析EA账号名，获取默认值。
         Returns:
             tuple: (ea_name, error_message)
         """
         ea_name = ea_name_input
+        pider = ""
         error_msg = None
 
         if ea_name is None:
@@ -98,8 +104,9 @@ class BattlefieldPluginLogic:
             if bind_data is None:
                 error_msg = "请先使用bind [ea_name]绑定"
             else:
-                ea_name = bind_data["ea_name"]
-        return ea_name, error_msg
+                ea_name = bind_data.get("ea_name")
+                pider = bind_data.get("ea_id",None)
+        return ea_name,pider, error_msg
 
     async def handle_btr_response(self, event, data_type, game, html_render_func, stat_data, weapon_data: list = None,
                                   vehicle_data=None, soldier_data=None, is_llm: bool = False,
@@ -155,7 +162,10 @@ class BattlefieldPluginLogic:
 
             generator_func, html_builder_func = handler_map[data_type]
             pic_url = await generator_func(api_data, game, html_render_func, html_builder_func)
-            yield pic_url
+            if isinstance(pic_url, str) and "https://campux.shooting-star-c.top" in pic_url:
+                yield event.plain_result(pic_url)
+            else:
+                yield pic_url
 
     async def handle_player_data_request(
             self, event: AstrMessageEvent, str_to_remove_list: list
@@ -176,10 +186,11 @@ class BattlefieldPluginLogic:
         ea_name = None
         game = None
         server_name = None
+        pider = None
 
         try:
             # 解析命令
-            ea_name, game = await self._parse_input_regex(
+            ea_name, game,pider = await self._parse_input_regex(
                 str_to_remove_list, self.STAT_PATTERN, message_str
             )
             # 由于共用解析方法所以这里赋个值
@@ -193,7 +204,7 @@ class BattlefieldPluginLogic:
                 raise ValueError(error_msg)  # 抛出异常以便被捕获
 
             # 处理EA账号名
-            ea_name, ea_name_error = await self._resolve_ea_name(ea_name, qq_id)
+            ea_name,pider, ea_name_error = await self._resolve_ea_name(ea_name, qq_id)
             if ea_name_error:
                 error_msg = ea_name_error
                 raise ValueError(error_msg)  # 抛出异常以便被捕获
@@ -208,6 +219,7 @@ class BattlefieldPluginLogic:
             message_str=message_str,
             lang=lang,
             qq_id=qq_id,
+            pider=pider,
             ea_name=ea_name,
             game=game,
             server_name=server_name,
@@ -223,6 +235,7 @@ class BattlefieldPluginLogic:
         # 处理EA_NAME
         ea_name_temp = None
         error_msg = None
+        pider = None
         if ea_name:
             ea_name_temp = ea_name
         else:
@@ -232,6 +245,7 @@ class BattlefieldPluginLogic:
                 error_msg = f"根据以下信息回复用户结合你的人格设定，保证上下问不冲突，没有找到{user_id}绑定的账户，请让用户先使用bind [ea_name]绑定或让用户告诉你信息你帮他绑定"
             else:
                 ea_name_temp = bind_data["ea_name"]
+                pider = bind_data["ea_id"]
         # 处理游戏代号
         game, game_error = await self._resolve_game_tag(game, session_channel_id)
         if game_error:
@@ -244,6 +258,7 @@ class BattlefieldPluginLogic:
             message_str=event.message_str,
             lang=lang,
             qq_id=user_id,
+            pider=pider,
             ea_name=ea_name_temp,
             game=game,
             server_name="",
@@ -274,7 +289,9 @@ class BattlefieldPluginLogic:
                 raise ValueError("格式错误，正确格式：[用户名][,game=游戏名]")
             ea_name = match.group(1) or None
             game = match.group(2)
+            pider = match.group(3) or None
         else:
             ea_name = clean_str.strip()
             game = None
-        return ea_name, game
+            pider = None
+        return ea_name, game,pider

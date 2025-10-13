@@ -152,7 +152,7 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
                     f"Battlefield Tool 调用接口失败，状态码: {response.status}, 错误信息: {error_dict}"
                 )
                 logger.error(error_msg)
-                return error_dict
+                raise ValueError(error_msg)
     except aiohttp.ClientError as e:
         error_msg = f"API网络请求异常: {str(e)}"
         logger.error(error_msg)
