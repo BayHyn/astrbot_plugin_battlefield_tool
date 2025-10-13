@@ -74,6 +74,42 @@ async def gt_request_api(game, prop="stats", params=None, timeout=15, session=No
             await session.close()
 
 
+async def fetch_image(url: str, timeout: int = 15, session: Optional[aiohttp.ClientSession] = None) -> Optional[bytes]:
+    """
+    异步获取图片
+    Args:
+        url: 图片的URL
+        timeout: 超时时间(秒)
+        session: 可选的aiohttp.ClientSession实例
+    Returns:
+        图片的二进制内容，如果失败则返回None
+    Raises:
+        aiohttp.ClientError: 网络或HTTP错误
+        asyncio.TimeoutError: 请求超时
+    """
+    should_close = session is None
+    if should_close:
+        session = aiohttp.ClientSession()
+
+    try:
+        timeout_obj = aiohttp.ClientTimeout(total=timeout)
+        async with session.get(url, timeout=timeout_obj) as response:
+            if response.status == 200:
+                return await response.read()
+            else:
+                logger.error(f"Battlefield Tool Failed to fetch image from {url}, status: {response.status}")
+                return None
+    except aiohttp.ClientError as e:
+        logger.error(f"Battlefield Tool Network request error while fetching image from {url}: {str(e)}")
+        return None
+    except asyncio.TimeoutError:
+        logger.error(f"Battlefield Tool Request timeout while fetching image from {url} after {timeout} seconds")
+        return None
+    finally:
+        if should_close and session is not None:
+            await session.close()
+
+
 
 async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int = 15,ssc_token= "", session: Optional[aiohttp.ClientSession] = None):
     """
