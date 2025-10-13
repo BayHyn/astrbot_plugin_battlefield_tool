@@ -391,6 +391,7 @@ class Vehicle:
             damage_dealt_to=data.get("stats").get("damageDealtTo").get("displayValue","--"),
 
             destroyed_with=data.get("stats").get("destroyedWith").get("displayValue","--"),
+            destroyed=data.get("stats").get("destroyedOfType").get("displayValue","--"),
             passenger_assists=data.get("stats").get("passengerAssists","--").get("displayValue","--"),
             driver_assists=data.get("stats").get("driverAssists").get("displayValue","--"),
             road_kills=data.get("stats").get("roadKills").get("displayValue","--"),
@@ -401,27 +402,27 @@ class Vehicle:
             deployments=data.get("stats").get("deployments").get("displayValue","--"),
 
             dmg_per_min="",
-            destroyed="",
         )
 
     @staticmethod
     def _get_category(category_name):
         category_map = {
+            #bf2042
             "Land": "地载",
             "Amphibious": "两栖载具",
             "In-World": "地图载具",
             "Plane": "空载",
             "Helicopter": "旋翼",
             "Stationary": "定点武器",
-
+            #bf6
             "Surface - Light Ground Transport": "轻型地面运输",
             "Surface - Main Battle Tank": "主战坦克",
             "Surface - Infantry Fighting Vehicle": "步兵战车",
             "Surface - Mobile Anti-Air": "防空",
             "Surface - Transport": "运输",
-            "Aircraft - Attack Helicopter": "攻击直升机",
-            "Aircraft - Attack Bomber": "对地攻击机",
-            "Aircraft - Fighter Jet": "空优",
+            "Aircraft - Attack Helicopter": "武装直升机",
+            "Aircraft - Attack Bomber": "攻击机",
+            "Aircraft - Fighter Jet": "空优机",
             "Aircraft - Transport Helicopter": "运输机",
 
 
@@ -431,6 +432,7 @@ class Vehicle:
     @staticmethod
     def _get_vehicle_category(name):
         category_map = {
+            #bf2042
             "LATV4 Recon ": "轻型侦察车",
             "M5C  ": "博尔特",
             "EBAA Wildcat ": "小野猫 ",
