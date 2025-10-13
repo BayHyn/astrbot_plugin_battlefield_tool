@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <meta name="viewport" content="width=700px,height=10px,initial-scale=1">
+    <meta name="viewport" content="width=700px,height=10px,initial-scale=1" charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
     <title></title>
     <script>
@@ -42,9 +42,8 @@
 
 <body>
     {% set bg_opacity_map = {
-        'bf1': 'bg-opacity-10',
-        'bf4': 'bg-opacity-30',
-        'bfv': 'bg-opacity-25'
+        'bf2042': 'bg-opacity-30',
+        'bf6': 'bg-opacity-10',
     } %}
     {% set current_bg_opacity_class = bg_opacity_map.get(game, 'bg-opacity-10') %}
 
@@ -54,6 +53,9 @@
             <img src="{{ stat_entity.avatar }}" alt="avatar" class="rounded-lg w-32 h-32 object-cover border-2 border-gray-700" />
             <div class="font-bold text-4xl mt-2">{{ stat_entity.user_name }}</div>
             <div class="flex items-center font-semibold text-gray-200 mt-1">
+                {% if game == 'bf6' %}
+                <img src="{{ stat_entity.rank_img }}" width="25px" class="mr-1" alt="等级IMG"/>
+                {% endif %}
                 等级 {{ stat_entity.level }}
             </div>
             <div class="font-semibold text-gray-200 mt-1">游戏时间：{{ stat_entity.hours_played }}</div>
@@ -70,13 +72,6 @@
         {% else %}
         <div class="text-center text-slate-400 py-4">暂无武器数据</div>
         {% endif %}
-        <div class="text-center text-slate-400 text-sm mt-2">
-            使用
-            <span class="text-cyan-300 font-mono">
-                weapons [玩家id],game={{ game }}
-            </span>
-            查看更多数据
-        </div>
     </div>
 
     <div class="flex flex-col justify-center items-center text-slate-400 py-3">

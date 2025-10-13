@@ -2,11 +2,11 @@
 <html>
 
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
     <title></title>
     <script>
-        tailwinstat_entity.config = {
+        tailwind.config = {
             theme: {
                 extend: {
                     colors: {
@@ -58,6 +58,9 @@
             <img src="{{ stat_entity.avatar }}" alt="avatar" class="rounded-lg w-32 h-32 object-cover border-2 border-gray-700" />
             <div class="font-bold text-4xl mt-2">{{ stat_entity.user_name }}</div>
             <div class="flex items-center font-semibold text-gray-200 mt-1">
+                {% if game == 'bf6' %}
+                <img src="{{ stat_entity.rank_img }}" width="25px" class="mr-1" alt="等级IMG"/>
+                {% endif %}
                 等级 {{ stat_entity.level }}
             </div>
             <div class="font-semibold text-gray-200 mt-1">游戏时间：{{ stat_entity.hours_played }}h</div>
@@ -142,7 +145,7 @@
         </div>
     </div>
 
-<!--    <h2 class="text-white">专家信息</h2>-->
+<!--    <h2 class="text-white">士兵信息</h2>-->
     <div class="mb-4"></div>
     <div class="flex flex-col gap-4 mx-5">
         {% from "soldier_card.html" import soldier_card %}
