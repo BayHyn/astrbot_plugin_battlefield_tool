@@ -134,6 +134,15 @@ async def btr_request_api(prop: str, params: Optional[dict] = None, timeout: int
         headers = {"X-API-Key":ssc_token}
     url = BTR_API_SITE + prop
     has_token = "是" if ssc_token else "否"
+
+    #下面几行是shi山
+    if params.get("player_name") is None and params.get("pider") is None:
+        raise ValueError("ea_name，或pider必填")
+    if params.get("player_name") is None:
+        params["player_name"] = ""
+    if params.get("pider") is None:
+        params["pider"] = ""
+
     logger.info(f"Battlefield Tool Request API: {url}，请求参数: {params}, 是否有ssc_token: {has_token}")
 
     should_close = session is None

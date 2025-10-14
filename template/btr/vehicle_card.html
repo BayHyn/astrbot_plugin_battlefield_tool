@@ -8,7 +8,7 @@
         </div>
         {% endif %}
         {% if game == 'bf6' %}
-        <img src="{{ vehicle_entity.image }}" class="object-scale-down" style="height:60px;width:150px;" />
+        <img src="{{ vehicle_entity.image }}" class="object-scale-down" style="height:60px;width:100px;" />
         {% endif %}
         {% if vehicle_entity.kills // 100 > 0 %}
             <div class="flex mt-1 text-yellow-500">
@@ -22,9 +22,10 @@
             <div class="text-2xl font-bold font-mono">{{ vehicle_entity.category }}</div>
         </div>
         <div>
-            <div class="text-2xl font-bold font-mono">{{ vehicle_entity.vehicle_name }}h</div>
+            <div class="text-2xl font-bold font-mono">{{ vehicle_entity.vehicle_name }}</div>
         </div>
     </div>
+    {% endif %}
     <div class="col-start-3 col-span-4 flex justify-around">
         <div>
             <div class="text-1xl text-yellow-400">使用时间</div>
@@ -43,26 +44,5 @@
             <div class="text-2xl font-bold font-mono">{{ vehicle_entity.destroyed }}</div>
         </div>
     </div>
-    {% endif %}
-    {% if game == 'bf2042' %}
-    <div class="col-start-3 col-span-4 flex justify-around">
-        <div>
-            <div class="text-1xl text-yellow-400">使用时间</div>
-            <div class="text-2xl font-bold font-mono">{{ vehicle_entity.time_played }}h</div>
-        </div>
-        <div>
-            <div class="text-1xl text-yellow-400">击杀</div>
-            <div class="text-2xl font-bold font-mono">{{ vehicle_entity.kills }}</div>
-        </div>
-        <div>
-            <div class="text-1xl text-yellow-400">KPM</div>
-            <div class="text-2xl font-bold font-mono">{{ vehicle_entity.kills_per_minute }}</div>
-        </div>
-        <div>
-            <div class="text-1xl text-yellow-400">摧毁</div>
-            <div class="text-2xl font-bold font-mono">{{ vehicle_entity.destroyed }}</div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endmacro %}

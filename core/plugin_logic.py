@@ -186,7 +186,7 @@ class BattlefieldPluginLogic:
         ea_name = None
         game = None
         server_name = None
-        pider = None
+        pider = ""
 
         try:
             # 解析命令
@@ -204,10 +204,13 @@ class BattlefieldPluginLogic:
                 raise ValueError(error_msg)  # 抛出异常以便被捕获
 
             # 处理EA账号名
-            ea_name,pider, ea_name_error = await self._resolve_ea_name(ea_name, qq_id)
-            if ea_name_error:
-                error_msg = ea_name_error
-                raise ValueError(error_msg)  # 抛出异常以便被捕获
+            if not ea_name and  not pider:
+                ea_name,pider, ea_name_error = await self._resolve_ea_name(ea_name, qq_id)
+                if ea_name_error:
+                    error_msg = ea_name_error
+                    raise ValueError(error_msg)  # 抛出异常以便被捕获
+
+
 
             # 战地1使用繁中
             if game == "bf1":
@@ -289,9 +292,9 @@ class BattlefieldPluginLogic:
                 raise ValueError("格式错误，正确格式：[用户名][,game=游戏名]")
             ea_name = match.group(1) or None
             game = match.group(2)
-            pider = match.group(3) or None
+            pider = match.group(3) or ""
         else:
             ea_name = clean_str.strip()
             game = None
-            pider = None
+            pider = ""
         return ea_name, game,pider
