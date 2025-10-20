@@ -23,7 +23,7 @@ class ImageUrls:
     BF6_BANNER = {
         "突击": "https://s21.ax1x.com/2025/10/11/pVbprc9.jpg",
         "支援": "https://s21.ax1x.com/2025/10/11/pVbp6n1.jpg",
-        "工程": "https://s21.ax1x.com/2025/10/11/pVbpD1J.jpg",
+        "工程": "https://s21.ax1x.com/2025/10/20/pVOem8A.jpg",
         "侦察": "https://s21.ax1x.com/2025/10/11/pVbpsXR.jpg",
     }
 
