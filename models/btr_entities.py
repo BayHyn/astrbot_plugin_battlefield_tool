@@ -1,6 +1,7 @@
 from typing import List, Optional, Dict, Any
 
 from ..core.image_util import get_image_base64
+from ..core.utils import format_large_number
 
 
 class PlayerStats:
@@ -12,10 +13,11 @@ class PlayerStats:
                  avatar: str,  # 玩家头像URL
                  user_name: str,  # 玩家用户名
                  level: str,  # 玩家等级
-                 rank_img: str,#等级图片
+                 rank_img: str,  # 等级图片
                  hours_played: str,  # 游戏时间（小时）
 
                  dmg_per_min: str,  # 每分钟伤害
+                 dmg_per_min_percentile: str,  # 每分钟伤害
                  kill_death: str,  # KD
                  kill_death_percentile: str,  # KD_PER
                  kills_per_minute: str,  # 每分钟击杀数
@@ -46,6 +48,7 @@ class PlayerStats:
         self.rank_img = rank_img
         self.hours_played = hours_played
         self.dmg_per_min = dmg_per_min
+        self.dmg_per_min_percentile = dmg_per_min_percentile
         self.kill_death = kill_death
         self.kill_death_percentile = kill_death_percentile
         self.headshot_percentage = headshot_percentage
@@ -78,7 +81,8 @@ class PlayerStats:
             rank_img="",
             hours_played=str(round(data.get("segments")[0].get("stats").get("timePlayed").get("value") / 3600, 1)),
 
-            dmg_per_min=data.get("segments")[0].get("stats").get("dmgPerMin").get("displayValue"),
+            dmg_per_min=data.get("segments")[0].get("stats").get("dmgPerMin").get("value"),
+            dmg_per_min_percentile=100,
             kill_death=data.get("segments")[0].get("stats").get("kdRatio").get("displayValue"),
             kill_death_percentile=100,
             headshot_percentage=data.get("segments")[0].get("stats").get("headshotPercentage").get("displayValue"),
@@ -87,33 +91,25 @@ class PlayerStats:
 
             human_kd_ratio=data.get("segments")[0].get("stats").get("humanKdRatio").get("displayValue"),
             kills=data.get("segments")[0].get("stats").get("kills").get("value"),
-            kills_percentile=round(100 - data.get("segments")[0].get("stats").get("kills").get("percentile",0), 2),
+            kills_percentile=round(100 - data.get("segments")[0].get("stats").get("kills").get("percentile", 0), 2),
             assists=data.get("segments")[0].get("stats").get("assists").get("value"),
             deaths=data.get("segments")[0].get("stats").get("deaths").get("value"),
-            kills_per_match=data.get("segments")[0].get("stats").get("killsPerMatch").get("displayValue"),
+            kills_per_match=data.get("segments")[0].get("stats").get("killsPerMatch").get("value"),
             wl_percentage=data.get("segments")[0].get("stats").get("wlPercentage").get("displayValue"),
 
             wins=data.get("segments")[0].get("stats").get("wins").get("displayValue"),
-            wins_percentile=round(100 - data.get("segments")[0].get("stats").get("wins").get("percentile",0), 2),
+            wins_percentile=round(100 - data.get("segments")[0].get("stats").get("wins").get("percentile", 0), 2),
             losses=data.get("segments")[0].get("stats").get("losses").get("displayValue"),
             damage_dealt=data.get("segments")[0].get("stats").get("damageDealt").get("displayValue"),
             damage_per_match=data.get("segments")[0].get("stats").get("damagePerMatch").get("value"),
             revives=data.get("segments")[0].get("stats").get("revives").get("value"),
             vehicles_destroyed=data.get("segments")[0].get("stats").get("vehiclesDestroyed").get("displayValue"),
-            score_per_minute ="",
-            score =""
+            score_per_minute="",
+            score=""
         )
+
     @classmethod
     async def from_bf6_dict(cls, data: Dict[str, Any]):
-        # 格式化分数
-        score = data.get("segments")[0].get("stats").get("score").get("value")
-        if score >1000000000:
-            score = str(round(score/1000000000,1))+"G"
-        elif score >1000000:
-            score = str(round(score/1000000,1))+"M"
-        elif score >1000:
-            score = str(round(score/1000,1))+"K"
-
         # 获取等级图片
         level = data.get("segments")[0].get("stats").get("careerPlayerRank").get("displayValue")
         rank_img = PlayerStats.get_rank_image(level)
@@ -128,32 +124,37 @@ class PlayerStats:
             rank_img=image,
             hours_played=str(round(data.get("segments")[0].get("stats").get("timePlayed").get("value") / 3600, 1)),
 
-            dmg_per_min=data.get("segments")[0].get("stats").get("damagePerMinute").get("displayValue"),
+            dmg_per_min=data.get("segments")[0].get("stats").get("damagePerMinute").get("value"),
+            dmg_per_min_percentile=round(
+                100 - data.get("segments")[0].get("stats").get("damagePerMinute").get("percentile", 0), 2),
             kill_death=data.get("segments")[0].get("stats").get("kdRatio").get("displayValue"),
-            kill_death_percentile=round(100-data.get("segments")[0].get("stats").get("kdRatio").get("percentile",0),2),
+            kill_death_percentile=round(100 - data.get("segments")[0].get("stats").get("kdRatio").get("percentile", 0),
+                                        2),
             headshot_percentage=data.get("segments")[0].get("stats").get("headshotPercentage").get("value"),
             kills_per_minute=data.get("segments")[0].get("stats").get("killsPerMinute").get("value"),
-            kills_per_minute_percentile=round(100-data.get("segments")[0].get("stats").get("killsPerMinute").get("percentile",0),2),
+            kills_per_minute_percentile=round(
+                100 - data.get("segments")[0].get("stats").get("killsPerMinute").get("percentile", 0), 2),
 
             human_kd_ratio="",
             kills=data.get("segments")[0].get("stats").get("kills").get("value"),
-            kills_percentile = round(100-data.get("segments")[0].get("stats").get("kills").get("percentile",0),2),
+            kills_percentile=round(100 - data.get("segments")[0].get("stats").get("kills").get("percentile", 0), 2),
             assists=data.get("segments")[0].get("stats").get("assists").get("value"),
             deaths=data.get("segments")[0].get("stats").get("deaths").get("value"),
-            kills_per_match=data.get("segments")[0].get("stats").get("killsPerMatch").get("displayValue"),
+            kills_per_match=data.get("segments")[0].get("stats").get("killsPerMatch").get("value"),
             wl_percentage=data.get("segments")[0].get("stats").get("wlPercentage").get("displayValue"),
 
             wins=data.get("segments")[0].get("stats").get("matchesWon").get("displayValue"),
-            wins_percentile=round(100-data.get("segments")[0].get("stats").get("matchesWon").get("percentile",0),2),
+            wins_percentile=round(100 - data.get("segments")[0].get("stats").get("matchesWon").get("percentile", 0), 2),
             losses=data.get("segments")[0].get("stats").get("matchesLost").get("displayValue"),
-            damage_dealt=data.get("segments")[0].get("stats").get("damageDealt").get("displayValue"),
+            damage_dealt=format_large_number(data.get("segments")[0].get("stats").get("damageDealt").get("value")),
             damage_per_match=data.get("segments")[0].get("stats").get("damagePerMatch").get("value"),
             revives=data.get("segments")[0].get("stats").get("revives").get("value"),
             vehicles_destroyed=data.get("segments")[0].get("stats").get("vehiclesDestroyed").get("value"),
             score_per_minute=data.get("segments")[0].get("stats").get("scorePerMinute").get("value"),
-            score=score,
+            score=format_large_number(data.get("segments")[0].get("stats").get("score").get("value")),
 
         )
+
     @staticmethod
     def get_rank_image(level):
         int_level = int(level)
@@ -175,8 +176,6 @@ class PlayerStats:
         else:
             # 超过 5000 级的，统一使用 5000 级的图片
             formatted_level = "5000"
-
-        print(formatted_level)
 
         return f"http://tutu.shooting-star-c.top/i/2025/10/13/t_ui_rank_{formatted_level}_lg.png"
 
@@ -256,9 +255,10 @@ class Weapon:
             body_kills=data.get("stats").get("bodyKills").get("displayValue", "--"),
             deployments=data.get("stats").get("deployments").get("displayValue", "--"),
         )
+
     @classmethod
     async def from_bf6_dict(cls, data: Dict[str, Any]):
-        image_url=Weapon._get_category(data.get("metadata").get("imageUrl", ""))
+        image_url = Weapon._get_category(data.get("metadata").get("imageUrl", ""))
         image = ""
         if image_url:
             image = await get_image_base64(image_url)
@@ -267,18 +267,17 @@ class Weapon:
             category=Weapon._get_category(data.get("metadata").get("categoryName", "--")),
             image_url=image_url,
             image=image,
-            kills=data.get("stats").get("kills").get("value",0),
-            kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue","--"),
-            shots_accuracy=data.get("stats").get("shotsAccuracy").get("displayValue","--"),
-            headshot_percentage=data.get("stats").get("headshotPercentage").get("displayValue","--"),
-            damage_dealt=data.get("stats").get("damageDealt").get("displayValue","--"),
-            shots_fired=data.get("stats").get("shotsFired").get("displayValue","--"),
-            shots_hit=data.get("stats").get("shotsHit").get("displayValue","--"),
-            headshot_kills=data.get("stats").get("headshotKills").get("displayValue","--"),
-            time_played=str(round(data.get("stats").get("timePlayed").get("value",0) / 3600, 1)),
-            multi_kills=data.get("stats").get("multiKills").get("displayValue","--"),
-            body_kills=data.get("stats").get("bodyKills").get("displayValue","--"),
-
+            kills=data.get("stats").get("kills").get("value", 0),
+            kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue", "--"),
+            shots_accuracy=data.get("stats").get("shotsAccuracy").get("displayValue", "--"),
+            headshot_percentage=data.get("stats").get("headshotPercentage").get("displayValue", "--"),
+            damage_dealt=data.get("stats").get("damageDealt").get("displayValue", "--"),
+            shots_fired=data.get("stats").get("shotsFired").get("displayValue", "--"),
+            shots_hit=data.get("stats").get("shotsHit").get("displayValue", "--"),
+            headshot_kills=data.get("stats").get("headshotKills").get("displayValue", "--"),
+            time_played=str(round(data.get("stats").get("timePlayed").get("value", 0) / 3600, 1)),
+            multi_kills=data.get("stats").get("multiKills").get("displayValue", "--"),
+            body_kills=data.get("stats").get("bodyKills").get("displayValue", "--"),
 
             deployments="",
             dmg_per_min="",
@@ -383,7 +382,7 @@ class Vehicle:
 
     @classmethod
     async def from_bf6_dict(cls, data: Dict[str, Any]):
-        image_url=data.get("metadata").get("imageUrl", "")
+        image_url = data.get("metadata").get("imageUrl", "")
         image = ""
         if image_url:
             image = await get_image_base64(image_url)
@@ -392,22 +391,22 @@ class Vehicle:
             category=Vehicle._get_category(data.get("metadata").get("categoryName", "--")),
             image_url=image_url,
             image=image,
-            kills=data.get("stats").get("kills").get("value",0),
-            kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue","--"),
-            time_played=str(round(data.get("stats").get("timePlayed").get("value",0) / 3600, 1)),
-            damage_dealt=data.get("stats").get("damageDealt").get("displayValue","--"),
-            damage_dealt_to=data.get("stats").get("damageDealtTo").get("displayValue","--"),
+            kills=data.get("stats").get("kills").get("value", 0),
+            kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue", "--"),
+            time_played=str(round(data.get("stats").get("timePlayed").get("value", 0) / 3600, 1)),
+            damage_dealt=data.get("stats").get("damageDealt").get("displayValue", "--"),
+            damage_dealt_to=data.get("stats").get("damageDealtTo").get("displayValue", "--"),
 
-            destroyed_with=data.get("stats").get("destroyedWith").get("displayValue","--"),
-            destroyed=data.get("stats").get("destroyedOfType").get("displayValue","--"),
-            passenger_assists=data.get("stats").get("passengerAssists","--").get("displayValue","--"),
-            driver_assists=data.get("stats").get("driverAssists").get("displayValue","--"),
-            road_kills=data.get("stats").get("roadKills").get("displayValue","--"),
-            assists=data.get("stats").get("assists").get("displayValue","--"),
-            multi_kills=data.get("stats").get("multiKills").get("displayValue","--"),
-            distance_traveled=data.get("stats").get("distanceTraveled").get("displayValue","--"),
-            call_ins=data.get("stats").get("callIns").get("displayValue","--"),
-            deployments=data.get("stats").get("deployments").get("displayValue","--"),
+            destroyed_with=data.get("stats").get("destroyedWith").get("displayValue", "--"),
+            destroyed=data.get("stats").get("destroyedOfType").get("displayValue", "--"),
+            passenger_assists=data.get("stats").get("passengerAssists", "--").get("displayValue", "--"),
+            driver_assists=data.get("stats").get("driverAssists").get("displayValue", "--"),
+            road_kills=data.get("stats").get("roadKills").get("displayValue", "--"),
+            assists=data.get("stats").get("assists").get("displayValue", "--"),
+            multi_kills=data.get("stats").get("multiKills").get("displayValue", "--"),
+            distance_traveled=data.get("stats").get("distanceTraveled").get("displayValue", "--"),
+            call_ins=data.get("stats").get("callIns").get("displayValue", "--"),
+            deployments=data.get("stats").get("deployments").get("displayValue", "--"),
 
             dmg_per_min="",
         )
@@ -415,14 +414,14 @@ class Vehicle:
     @staticmethod
     def _get_category(category_name):
         category_map = {
-            #bf2042
+            # bf2042
             "Land": "地载",
             "Amphibious": "两栖载具",
             "In-World": "地图载具",
             "Plane": "空载",
             "Helicopter": "旋翼",
             "Stationary": "定点武器",
-            #bf6
+            # bf6
             "Surface - Light Ground Transport": "轻型地面运输",
             "Surface - Main Battle Tank": "主战坦克",
             "Surface - Infantry Fighting Vehicle": "步兵战车",
@@ -433,14 +432,13 @@ class Vehicle:
             "Aircraft - Fighter Jet": "空优机",
             "Aircraft - Transport Helicopter": "运输机",
 
-
         }
         return category_map.get(category_name, category_name)
 
     @staticmethod
     def _get_vehicle_category(name):
         category_map = {
-            #bf2042
+            # bf2042
             "LATV4 Recon ": "轻型侦察车",
             "M5C  ": "博尔特",
             "EBAA Wildcat ": "小野猫 ",
@@ -520,9 +518,10 @@ class Soldier:
             revives=data.get("stats").get("revives").get("displayValue", "--"),
             deaths=data.get("stats").get("deaths").get("displayValue", "--"),
         )
+
     @classmethod
     async def from_bf6_dict(cls, data: Dict[str, Any]):
-        image_url=data.get("metadata").get("imageUrl", "")
+        image_url = data.get("metadata").get("imageUrl", "")
         image = ""
         if image_url:
             image = await get_image_base64(image_url)
@@ -531,14 +530,14 @@ class Soldier:
             category="",
             image_url=image_url,
             image=image,
-            kills=data.get("stats").get("kills").get("value",0),
-            kd_ratio=data.get("stats").get("kdRatio").get("displayValue","--"),
-            kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue","--"),
-            assists=data.get("stats").get("assists").get("displayValue","--"),
-            time_played=str(round(data.get("stats").get("timePlayed").get("value",0) / 3600, 1)),
-            deployments=data.get("stats").get("deployments").get("displayValue","--"),
-            revives=data.get("stats").get("revives").get("displayValue","--"),
-            deaths=data.get("stats").get("deaths").get("displayValue","--"),
+            kills=data.get("stats").get("kills").get("value", 0),
+            kd_ratio=data.get("stats").get("kdRatio").get("displayValue", "--"),
+            kills_per_minute=data.get("stats").get("killsPerMinute").get("displayValue", "--"),
+            assists=data.get("stats").get("assists").get("displayValue", "--"),
+            time_played=str(round(data.get("stats").get("timePlayed").get("value", 0) / 3600, 1)),
+            deployments=data.get("stats").get("deployments").get("displayValue", "--"),
+            revives=data.get("stats").get("revives").get("displayValue", "--"),
+            deaths=data.get("stats").get("deaths").get("displayValue", "--"),
         )
 
     @staticmethod
@@ -573,6 +572,10 @@ class Soldier:
     def to_llm_text(self) -> str:
         """预处理 Soldier 方便 llm 理解"""
         return f"""最擅长使用{self.category}兵士兵{self.soldier_name},{self.time_played}小时中击杀了{self.kills}名敌军,平均每分钟击杀{self.kills_per_minute},击杀死亡比值{self.kd_ratio}。"""
+
+    def to_llm_bf6_text(self) -> str:
+        """预处理 Soldier 方便 llm 理解"""
+        return f"""最擅长使用{self.soldier_name}兵,{self.time_played}小时中击杀了{self.kills}名敌军,平均每分钟击杀{self.kills_per_minute},击杀死亡比值{self.kd_ratio}。"""
 
     def __repr__(self):
         return f"Soldier(soldier_name='{self.soldier_name}', category='{self.category}', kills={self.kills})"
