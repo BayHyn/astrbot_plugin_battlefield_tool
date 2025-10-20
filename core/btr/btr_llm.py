@@ -21,7 +21,7 @@ def sort_list_of_dicts(list_of_dicts, key):
     return sorted(filtered_list, key=lambda k: get_nested_value(k, key), reverse=True)
 
 
-def btr_main_llm_builder(stat_data: dict, weapons_data, vehicles_data, soldier_data, game: str, bf_prompt: str) -> str:
+async def btr_main_llm_builder(stat_data: dict, weapons_data, vehicles_data, soldier_data, game: str, bf_prompt: str) -> str:
     """
         构建LLM能够理解的Prompt
         Args:
@@ -30,21 +30,29 @@ def btr_main_llm_builder(stat_data: dict, weapons_data, vehicles_data, soldier_d
             vehicles_data: 查询到的载具数据字典
             soldier_data: 查询到的士兵数据字典
             game: 所查询的游戏
+            bf_prompt: 默认评价提示词
         Returns:
             构建的Html
     """
-
-    # 创建对象
-    stat_entity = PlayerStats.from_btr_dict(stat_data)
-
     weapons_data = sort_list_of_dicts(weapons_data, "stats.kills.value")
     vehicles_data = sort_list_of_dicts(vehicles_data, "stats.kills.value")
     soldier_data = sort_list_of_dicts(soldier_data, "stats.kills.value")
+    if game == "bf6":
+        # 创建对象
+        stat_entity = await PlayerStats.from_bf6_dict(stat_data)
 
-    # 循环创建武器、载具、士兵对象列表
-    weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:2]]
-    vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:2]]
-    soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
+        # 循环创建武器、载具、士兵对象列表
+        weapons_entities = [await Weapon.from_bf6_dict(weapon_dict) for weapon_dict in weapons_data[:2]]
+        vehicles_entities = [await Vehicle.from_bf6_dict(vehicle_dict) for vehicle_dict in vehicles_data[:2]]
+        soldiers_entities = [await Soldier.from_bf6_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
+    else:
+        # 创建对象
+        stat_entity = PlayerStats.from_btr_dict(stat_data)
+
+        # 循环创建武器、载具、士兵对象列表
+        weapons_entities = [Weapon.from_btr_dict(weapon_dict) for weapon_dict in weapons_data[:2]]
+        vehicles_entities = [Vehicle.from_btr_dict(vehicle_dict) for vehicle_dict in vehicles_data[:2]]
+        soldiers_entities = [Soldier.from_btr_dict(soldier_dict) for soldier_dict in soldier_data[:1]]
 
     llm_text = f"""{bf_prompt}，{game}中{stat_entity.to_llm_text()}"""
 
@@ -56,6 +64,11 @@ def btr_main_llm_builder(stat_data: dict, weapons_data, vehicles_data, soldier_d
             llm_text += vehicle.to_llm_text()
     if soldiers_entities:
         for soldier in soldiers_entities:
-            llm_text += soldier.to_llm_text()
+            if game == "bf6":
+                llm_text += soldier.to_llm_bf6_text()
+            else:
+                llm_text += soldier.to_llm_text()
+
+    logger.info(llm_text)
 
     return llm_text

@@ -113,7 +113,7 @@ class BattlefieldPluginLogic:
                                   ):
         """处理bf6/bf2042等新API的响应逻辑"""
         if is_llm:
-            yield btr_main_llm_builder(stat_data, weapon_data, vehicle_data, soldier_data, game, self.bf_prompt)
+            yield await btr_main_llm_builder(stat_data, weapon_data, vehicle_data, soldier_data, game, self.bf_prompt)
         else:
             handler_map = {
                 "stat": (self.btr_image_generator.generate_main_btr_data_pic, btr_main_html_builder),
