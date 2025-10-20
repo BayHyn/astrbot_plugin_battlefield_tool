@@ -72,22 +72,28 @@
         <div class="text-center p-4 rounded-lg bg-gray-600/{{current_card_bg_color}} w-32">
             <div class="text-sm text-yellow-400">击杀</div>
             <div class="text-2xl font-bold font-mono text-white">{{ stat_entity.kills }}</div>
-            {% if stat_entity.kills_percentile < 30 %}
+            {% if stat_entity.kills_percentile < 60 %}
             <div class="text-xs text-green-400">Top {{stat_entity.kills_percentile}}%</div>
             {% endif %}
         </div>
         <div class="text-center p-4 rounded-lg bg-gray-600/{{current_card_bg_color}} w-32">
             <div class="text-sm text-yellow-400">K/D</div>
             <div class="text-2xl font-bold font-mono text-white">{{ stat_entity.kill_death }}</div>
+            {% if stat_entity.kill_death_percentile < 60 %}
+            <div class="text-xs text-green-400">Top {{ stat_entity.kill_death_percentile }}%</div>
+            {% endif %}
         </div>
         <div class="text-center p-4 rounded-lg bg-gray-600/{{current_card_bg_color}} w-32">
             <div class="text-sm text-yellow-400">KPM</div>
             <div class="text-2xl font-bold font-mono text-white">{{ stat_entity.kills_per_minute }}</div>
+            {% if stat_entity.kills_per_minute_percentile < 60 %}
+            <div class="text-xs text-green-400">Top {{ stat_entity.kills_per_minute_percentile }}%</div>
+            {% endif %}
         </div>
         <div class="text-center p-4 rounded-lg bg-gray-600/{{current_card_bg_color}} w-32">
             <div class="text-sm text-yellow-400">胜利场次</div>
             <div class="text-2xl font-bold font-mono text-white">{{ stat_entity.wins }}</div>
-            {% if stat_entity.wins_percentile < 30 %}
+            {% if stat_entity.wins_percentile < 60 %}
             <div class="text-xs text-green-400">Top {{ stat_entity.wins_percentile }}%</div>
             {% endif %}
         </div>
