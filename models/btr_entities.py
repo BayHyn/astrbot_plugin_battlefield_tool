@@ -25,8 +25,11 @@ class PlayerStats:
                  headshot_percentage: str,  # 爆头率
 
                  human_kd_ratio: str,  # 对玩家KD
+                 human_kd_ratio_percentile: str,  # 对玩家KD排名
                  kills: int,  # 击杀
                  kills_percentile: str,  # 击杀排名
+                 player_kills: int,  # 击杀玩家
+                 player_kills_percentile: int,  # 击杀玩家排名
                  assists: str,  # 助攻
                  deaths: str,  # 死亡
                  kills_per_match: str,  # 场均击杀
@@ -55,8 +58,11 @@ class PlayerStats:
         self.kills_per_minute = kills_per_minute
         self.kills_per_minute_percentile = kills_per_minute_percentile
         self.human_kd_ratio = human_kd_ratio
+        self.human_kd_ratio_percentile = human_kd_ratio_percentile
         self.kills = kills
         self.kills_percentile = kills_percentile
+        self.player_kills = player_kills
+        self.player_kills_percentile = player_kills_percentile
         self.assists = assists
         self.deaths = deaths
         self.kills_per_match = kills_per_match
@@ -100,12 +106,15 @@ class PlayerStats:
             wins=data.get("segments")[0].get("stats").get("wins").get("displayValue"),
             wins_percentile=round(100 - data.get("segments")[0].get("stats").get("wins").get("percentile", 0), 2),
             losses=data.get("segments")[0].get("stats").get("losses").get("displayValue"),
-            damage_dealt=data.get("segments")[0].get("stats").get("damageDealt").get("displayValue"),
+            damage_dealt=format_large_number(data.get("segments")[0].get("stats").get("damageDealt").get("value")),
             damage_per_match=data.get("segments")[0].get("stats").get("damagePerMatch").get("value"),
             revives=data.get("segments")[0].get("stats").get("revives").get("value"),
             vehicles_destroyed=data.get("segments")[0].get("stats").get("vehiclesDestroyed").get("displayValue"),
             score_per_minute="",
-            score=""
+            score="",
+            human_kd_ratio_percentile=100,
+            player_kills=0,
+            player_kills_percentile=0,
         )
 
     @classmethod
@@ -134,10 +143,14 @@ class PlayerStats:
             kills_per_minute=data.get("segments")[0].get("stats").get("killsPerMinute").get("value"),
             kills_per_minute_percentile=round(
                 100 - data.get("segments")[0].get("stats").get("killsPerMinute").get("percentile", 0), 2),
-
-            human_kd_ratio="",
+            human_kd_ratio=data.get("segments")[0].get("stats").get("playerKd").get("displayValue"),
+            human_kd_ratio_percentile=round(
+                100 - data.get("segments")[0].get("stats").get("playerKd").get("percentile", 0), 2),
             kills=data.get("segments")[0].get("stats").get("kills").get("value"),
             kills_percentile=round(100 - data.get("segments")[0].get("stats").get("kills").get("percentile", 0), 2),
+            player_kills=data.get("segments")[0].get("stats").get("playerKills").get("value", 0),
+            player_kills_percentile=round(
+                100 - data.get("segments")[0].get("stats").get("playerKills").get("percentile", 0), 2),
             assists=data.get("segments")[0].get("stats").get("assists").get("value"),
             deaths=data.get("segments")[0].get("stats").get("deaths").get("value"),
             kills_per_match=data.get("segments")[0].get("stats").get("killsPerMatch").get("value"),
